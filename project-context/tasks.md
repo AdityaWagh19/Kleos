@@ -8,21 +8,21 @@
 ## Hours 0–3: Foundation
 
 ### Backend
-- [ ] FastAPI project skeleton: folder structure, main.py, routers/, ws/, services/, workers/, db/, cache/, fixtures/
-- [ ] Supabase client setup (db/supabase.py): connect using SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY
-- [ ] Supabase schema migrations: canvases, nodes (with impact_nodes JSONB), edges, memories (quarantined bool), events, branches tables
-- [ ] Redis Cloud client setup (cache/client.py): connect using REDIS_URL + REDIS_PASSWORD + SSL
-- [ ] Celery app initialization (workers/celery_app.py): broker=Redis, backend=Redis
-- [ ] Environment variable loading via python-dotenv (.env): OPENAI_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, REDIS_URL, REDIS_PASSWORD, DEMO_MODE, SUPABASE_STORAGE_BUCKET
-- [ ] FastAPI health check endpoint: GET /health (verifies Supabase + Redis connections)
+- [x] FastAPI project skeleton: folder structure, main.py, routers/, ws/, services/, workers/, db/, cache/, fixtures/
+- [x] Supabase client setup (db/supabase.py): connect using SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY
+- [x] Supabase schema migrations: canvases, nodes (with impact_nodes JSONB), edges, memories (quarantined bool), events, branches tables
+- [x] Redis Cloud client setup (cache/redis.py): connect using REDIS_URL + REDIS_PASSWORD + SSL
+- [x] Celery app initialization (workers/celery_app.py): broker=Redis, backend=Redis
+- [x] Environment variable loading via python-dotenv (.env): OPENAI_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, REDIS_URL, REDIS_PASSWORD, DEMO_MODE, SUPABASE_STORAGE_BUCKET
+- [x] FastAPI health check endpoint: GET /health (verifies Supabase + Redis connections)
 
 ### Frontend
-- [ ] Vite + React + TypeScript project scaffold
-- [ ] react-flow canvas shell: pan, zoom, empty state
-- [ ] Basic node rendering: idea, evidence, assumption node types with placeholder styles
-- [ ] TypeScript type definitions: Node, Edge, Memory, Event, Branch, WorkspaceMode, InputModality
-- [ ] API client service (services/api.ts): base URL from VITE_API_BASE_URL, error handling wrapper
-- [ ] WebSocket client service (services/ws.ts): base URL from VITE_WS_BASE_URL, reconnect logic
+- [x] Vite + React + TypeScript project scaffold
+- [x] react-flow canvas shell: pan, zoom, empty state
+- [x] Basic node rendering: idea, evidence, assumption node types with placeholder styles
+- [x] TypeScript type definitions: Node, Edge, Memory, Event, Branch, WorkspaceMode, InputModality
+- [x] API client service (services/api.ts): base URL from VITE_API_BASE_URL, error handling wrapper
+- [x] WebSocket client service (services/ws.ts): base URL from VITE_WS_BASE_URL, reconnect logic
 
 ---
 

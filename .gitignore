@@ -1,0 +1,36 @@
+# Python
+src/backend/venv/
+src/backend/__pycache__/
+src/backend/**/__pycache__/
+src/backend/.env
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Node
+src/frontend/node_modules/
+src/frontend/dist/
+src/frontend/.env
+
+# Environment files (never commit secrets)
+.env
+.env.local
+.env.*.local
+.env.demo
+
+# Supabase
+.supabase/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
