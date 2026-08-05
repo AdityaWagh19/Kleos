@@ -21,13 +21,13 @@ Features that were designed but deferred from the 48-hour build. V1 completes th
 | B6. Reasoning Path Walk | XAI | Step-through guided mode with per-step trust rating; feedback stored and used to adjust future prompt weighting |
 | A5. Memory Freshness Indicators | Memory | Age badges and staleness flags; computed at canvas load, not continuously |
 | C3. Thinking Timeline | Canvas | Full implementation with Delta View (side-by-side diff between two keyframes) |
-| C5. Voice Input | Canvas | Full Sarvam AI STT integration; all 12 verbs voice-addressable in Indian languages |
 | C7. Quick Override | Canvas | Per-cluster reasoning mode override; badge visible on cluster label |
 | D3. Activity Log | Governance | Read-only overlay of all canvas operations with timestamps |
 | A3. Memory Panel (relational graph view) | Memory | Visual graph view of memory items and their relationships (V1 upgrade from flat list) |
 | B9. Epistemic Health Check | XAI | Automated check before Decision node commit: surfaces unresolved assumptions and contradictions |
 | Cognitive Load Monitor | Canvas | Canvas entropy detection; Collapse suggestion when node density is high but structure is low |
 | Custom Workspace Modes | Workspace | User-created modes extending the 4 defaults |
+| text-embedding-3-small + RedisVSS | Infrastructure | Semantic vector retrieval for context assembly at production canvas scale (> 200 nodes); deferred from hackathon build |
 | CSV / XLSX input | Ingestion | pandas + GPT-4o for pricing tables, data comparisons, research datasets |
 | PPTX input | Ingestion | python-pptx with GPT-4o Vision for slide images |
 
@@ -118,13 +118,14 @@ Four study designs that emerge directly from Kleos's design decisions. Each is a
 
 | Component | Hackathon | Production Target |
 |---|---|---|
-| Memory store | SQLite local | PostgreSQL + Redis (real-time) |
-| Vector store | ChromaDB local | Pinecone (managed) |
-| Graph relationships | JSON arrays in SQLite | Neo4j AuraDB |
+| Memory store | Supabase PostgreSQL | Same — scale with RLS and read replicas |
+| Vector store | Redis Cloud (RedisVSS) | Same — add semantic retrieval in V1 with text-embedding-3-small |
+| File storage | Supabase Storage | Same — add CDN fronting if needed |
 | LLM routing | OpenAI API direct | LiteLLM or similar with fallback routing |
-| Authentication | None | Auth0 or Clerk |
-| Deployment | Local laptop | Vercel (frontend) + Railway or Fly.io (backend) |
-| PDF export | puppeteer (local) | Browserless.io or similar headless cloud service |
+| Authentication | None | Supabase Auth (built-in) |
+| Deployment | AWS EC2 single instance | Add load balancer + multiple EC2 instances (V2) |
+| PDF export | pyppeteer on EC2 | Containerized worker or Browserless.io cloud service |
+| Task queue | Celery + Redis | Same — add priority queues and retry policies in V1 |
 
 ---
 

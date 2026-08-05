@@ -38,7 +38,8 @@ Kleos has 12 named verbs. These are the only interaction primitives that require
 
 | State | Description |
 |---|---|
-| Exploration | AI auto-layouts continuously as new matter is dropped |
+| Exploration | AI auto-layouts continuously as new matter is dropped or spoken |
+| Listening | Voice channel active; microphone icon animated; transcript visible below canvas |
 | Pinned | One or more nodes are pinned; AI respects their positions |
 | Compare | Two branches displayed side by side |
 | Reasoning Walk | Canvas dims; only reasoning chain nodes fully visible |
@@ -102,10 +103,11 @@ Each of the 8 node types has a distinct visual treatment to be designed consiste
 
 ### Status Pill
 
-Located in the canvas header, right of the mode indicator. Two states only:
+Located in the canvas header, right of the mode indicator. Three states:
 
-- `Working...` — animated blue dot. Indicates active AI processing.
-- `Ready` — static green dot. Indicates idle.
+- `Working...` — animated blue dot. Active AI processing (text compilation path).
+- `Listening` — animated microphone icon. Voice channel active; mic is capturing.
+- `Ready` — static green dot. Idle.
 
 Clicking "Working..." shows the last 3 Reasoning Ribbon steps as a compact tooltip. Does not pause or interrupt compilation.
 

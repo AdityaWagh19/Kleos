@@ -1,12 +1,10 @@
 # Instructions
 
-**Kleos** — Environment Setup and Local Development
+**Kleos** — Environment Setup and Development
 
 ---
 
 ## Prerequisites
-
-Ensure the following are installed before proceeding:
 
 | Tool | Version | Purpose |
 |---|---|---|
@@ -15,18 +13,35 @@ Ensure the following are installed before proceeding:
 | Python | 3.11+ | Backend runtime |
 | pip | Latest | Python package manager |
 | Git | Latest | Version control |
-| Chromium / Chrome | Latest | Required by puppeteer for PDF export |
+
+No local database installation required. No local vector store required. All persistence is handled by managed cloud services.
 
 ---
 
-## API Keys Required
+## Cloud Service Accounts Required
 
-The following API keys must be set as environment variables before running the backend:
-
-| Variable | Required | Purpose |
+| Service | Purpose | Setup URL |
 |---|---|---|
-| `OPENAI_API_KEY` | Yes | GPT-4o and GPT-4o-mini (primary and classification LLM) |
-| `SARVAM_API_KEY` | No (optional) | Multilingual STT/TTS — required only if Voice input is implemented |
+| Supabase | PostgreSQL database + file storage | supabase.com |
+| Redis Cloud | Vector search + task queue + caching | redis.com/redis-enterprise-cloud |
+| OpenAI | GPT-4o, gpt-4o-realtime-preview, GPT-4o-mini | platform.openai.com |
+| AWS | EC2 compute (production deployment only) | aws.amazon.com |
+
+---
+
+## API Keys and Connection Strings
+
+All required environment variables. Do not commit any of these to the repository.
+
+| Variable | Required | Source |
+|---|---|---|
+| `OPENAI_API_KEY` | Yes | OpenAI platform — single key covers all three models |
+| `SUPABASE_URL` | Yes | Supabase project → Settings → API |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase project → Settings → API (service role, not anon key) |
+| `REDIS_URL` | Yes | Redis Cloud → Database → Configuration → Public endpoint |
+| `REDIS_PASSWORD` | Yes | Redis Cloud → Database → Configuration |
+| `DEMO_MODE` | Yes (demo) | Set to `true` to serve pre-cached LLM responses for scripted beats |
+| `SUPABASE_STORAGE_BUCKET` | Yes | Name of the storage bucket created in Supabase Storage |
 
 ---
 
@@ -37,77 +52,130 @@ Kleos/
 ├── README.md
 ├── Kleos_Master_Document.md
 ├── project-context/
-├── src/
-│   ├── frontend/                 # React + TypeScript application
-│   │   ├── package.json
-│   │   ├── src/
-│   │   │   ├── components/       # Canvas, panels, UI components
-│   │   │   ├── hooks/            # Custom React hooks
-│   │   │   ├── services/         # API client, SSE handler
-│   │   │   └── types/            # TypeScript type definitions
-│   │   └── public/
-│   └── backend/                  # FastAPI application
-│       ├── requirements.txt
-│       ├── main.py               # FastAPI entry point
-│       ├── routers/              # API route handlers
-│       ├── services/             # LLM orchestration, memory service, ingestion
-│       ├── models/               # Data models and schemas
-│       ├── db/                   # SQLite initialization and queries
-│       └── fixtures/             # Pre-cached LLM responses for demo beats
+└── src/
+    ├── frontend/
+    │   ├── package.json
+    │   ├── vite.config.ts
+    │   └── src/
+    │       ├── components/         # Canvas, panels, voice UI, export
+    │       ├── hooks/              # Custom React hooks (useVoice, useSSE, useCanvas)
+    │       ├── services/           # API client, WebSocket handler, SSE consumer
+    │       └── types/              # TypeScript: Node, Edge, Memory, Branch, Event
+    └── backend/
+        ├── requirements.txt
+        ├── main.py                 # FastAPI entry point
+        ├── routers/                # HTTP route handlers
+        ├── ws/                     # WebSocket handlers (/ws/voice)
+        ├── services/               # LLM orchestration, memory, ingestion, export
+        ├── workers/                # Celery task definitions (document processing, PDF export)
+        ├── db/                     # Supabase client, schema migrations
+        ├── cache/                  # Redis client, vector search helpers
+        └── fixtures/               # Pre-cached LLM responses for demo beats
 ```
+
+---
+
+## Supabase Setup
+
+```bash
+# Install the Supabase CLI
+npm install -g supabase
+
+# Initialise (from repo root)
+supabase init
+
+# Link to your Supabase project
+supabase link --project-ref <your-project-ref>
+
+# Run schema migrations
+supabase db push
+```
+
+Migrations must create:
+- `canvases` table
+- `nodes` table (with `impact_nodes` as JSONB array, `provenance_detail` as JSONB)
+- `edges` table
+- `memories` table (with `quarantined` and `archived` boolean fields)
+- `events` table (event log)
+- `branches` table
+
+Create a storage bucket named `kleos-artifacts` (or set via `SUPABASE_STORAGE_BUCKET`) for PDF uploads and PDF export files.
+
+---
+
+## Redis Cloud Setup
+
+```bash
+pip install redis
+```
+
+Redis Cloud requires no local installation. Connect using the connection string from your Redis Cloud database configuration.
+
+```python
+# Example connection (backend/cache/client.py)
+import redis
+
+client = redis.Redis(
+    host="your-redis-endpoint.redis.com",
+    port=12345,
+    password=os.environ["REDIS_PASSWORD"],
+    ssl=True,
+    decode_responses=True
+)
+```
+
+Redis Cloud (Redis Stack) includes RedisVSS for vector search. No separate vector database is required.
 
 ---
 
 ## Backend Setup
 
 ```bash
-# Navigate to backend directory
 cd src/backend
 
-# Create a virtual environment
+# Create virtual environment
 python -m venv venv
 
-# Activate the virtual environment
-# On Windows:
+# Activate
+# Windows:
 venv\Scripts\activate
-# On macOS/Linux:
+# macOS / Linux:
 source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Set environment variables
-# On Windows (PowerShell):
-$env:OPENAI_API_KEY = "your-openai-api-key"
-$env:SARVAM_API_KEY = "your-sarvam-api-key"  # optional
+# Copy and populate the environment file
+cp .env.example .env
+# Edit .env with your Supabase, Redis, and OpenAI credentials
 
-# Initialize the SQLite database
-python db/init.py
-
-# Start the backend server
+# Start the backend (development)
 uvicorn main:app --reload --port 8000
+
+# Start the Celery worker (separate terminal, same venv)
+celery -A workers.celery_app worker --loglevel=info
 ```
 
-The backend will be available at `http://localhost:8000`.
-
-API documentation (auto-generated by FastAPI): `http://localhost:8000/docs`
+API documentation: `http://localhost:8000/docs`
 
 ---
 
 ## Frontend Setup
 
 ```bash
-# Navigate to frontend directory
 cd src/frontend
 
-# Install dependencies
 npm install
 
-# Start the development server
+# Copy and populate the environment file
+cp .env.example .env
+# Set VITE_API_BASE_URL=http://localhost:8000
+# Set VITE_WS_BASE_URL=ws://localhost:8000
+
 npm run dev
 ```
 
-The frontend will be available at `http://localhost:5173` (Vite default).
+Frontend: `http://localhost:5173`
 
 ---
 
@@ -116,8 +184,11 @@ The frontend will be available at `http://localhost:5173` (Vite default).
 ```
 fastapi
 uvicorn[standard]
+websockets
 openai
-chromadb
+supabase
+redis[hiredis]
+celery[redis]
 pymupdf
 python-docx
 python-pptx
@@ -125,11 +196,14 @@ requests
 beautifulsoup4
 pandas
 openpyxl
-SQLAlchemy
 pydantic
 python-multipart
 sse-starlette
+python-dotenv
+pyppeteer
 ```
+
+**Removed:** `chromadb`, `SQLAlchemy` (replaced by Supabase client), `sarvam` (replaced by OpenAI Realtime API)
 
 ---
 
@@ -154,54 +228,68 @@ sse-starlette
 
 ---
 
-## Chromium / puppeteer Setup
+## Voice Channel Setup
 
-puppeteer is used for PDF export. It requires a Chromium installation.
+The voice channel uses the OpenAI Realtime API over WebSocket. No additional libraries are required beyond the standard `openai` Python package.
 
-```bash
-# In the backend virtual environment:
-pip install pyppeteer
-# pyppeteer will download Chromium automatically on first run
+**Backend:** FastAPI WebSocket at `/ws/voice` proxies audio to the OpenAI Realtime API WebSocket endpoint. Tool call results from the Realtime API are routed to the canvas service and delivered to the frontend via SSE.
+
+**Frontend:** Web Audio API captures microphone input. The browser's native `WebSocket` API connects to `/ws/voice`. No additional npm package is required.
+
+```typescript
+// Frontend voice hook skeleton (src/hooks/useVoice.ts)
+const ws = new WebSocket(`${import.meta.env.VITE_WS_BASE_URL}/ws/voice`);
+const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+// AudioContext → MediaStreamSource → ScriptProcessor → ws.send(audioChunk)
 ```
 
-**If Chromium cannot be installed in the demo environment**, fall back to pdfkit:
+**Test the voice channel first.** In Hours 0–4, verify that:
+1. The FastAPI WebSocket can proxy bidirectional audio to the OpenAI Realtime API
+2. A simple "create a node called test" voice command produces the correct `create_node` tool call
+3. End-to-end latency from speech to canvas change is under 5 seconds
 
+---
+
+## PDF Export Setup
+
+pyppeteer downloads Chromium automatically on first import. On EC2, verify that Chromium can run headless.
+
+```bash
+# In the backend venv:
+python -c "import pyppeteer; print('pyppeteer OK')"
+# First run will download Chromium (~150MB) — this is expected
+```
+
+**If Chromium fails on EC2**, install system dependencies:
+```bash
+sudo apt-get install -y libgbm-dev libasound2 libatk-bridge2.0-0 libcups2 libxkbcommon0 libxdamage1 libxrandr2
+```
+
+**Fallback:** If Chromium cannot run, fall back to `pdfkit`:
 ```bash
 pip install pdfkit
-# Also requires wkhtmltopdf installed on the OS
-# Download: https://wkhtmltopdf.org/downloads.html
+sudo apt-get install -y wkhtmltopdf
 ```
 
-Update the export service to use pdfkit when puppeteer is unavailable. Log the fallback.
+Log the fallback. Update `progress.md` with which PDF export path is active.
 
 ---
 
-## ChromaDB Setup
-
-ChromaDB runs locally with no additional configuration. It persists data to disk in the `chroma_data/` directory, which is created automatically on first run.
-
-```bash
-# ChromaDB is initialized automatically when the backend starts
-# No separate setup step is required
-# Default persistence path: ./chroma_data/
-```
-
-Benchmark ChromaDB latency at demo scale (< 50 nodes, < 20 memory items) in the first 6 hours. Target: < 30ms per query.
-
----
-
-## Running Both Services Concurrently
-
-During development, run both services in separate terminal sessions:
+## Running All Services
 
 **Terminal 1 — Backend:**
 ```bash
-cd src/backend
-venv\Scripts\activate   # or source venv/bin/activate
+cd src/backend && source venv/bin/activate
 uvicorn main:app --reload --port 8000
 ```
 
-**Terminal 2 — Frontend:**
+**Terminal 2 — Celery Worker:**
+```bash
+cd src/backend && source venv/bin/activate
+celery -A workers.celery_app worker --loglevel=info
+```
+
+**Terminal 3 — Frontend:**
 ```bash
 cd src/frontend
 npm run dev
@@ -211,37 +299,46 @@ npm run dev
 
 ## Pre-Caching Demo Fixtures
 
-Before the hackathon demo, all scripted demo beat LLM responses must be pre-cached as JSON fixtures:
+Before the demo, generate all fixture files:
 
 ```bash
-# Run the fixture generation script (to be created during build)
-cd src/backend
+cd src/backend && source venv/bin/activate
 python fixtures/generate_fixtures.py
 ```
 
-Fixtures are stored in `src/backend/fixtures/` and served by the backend when demo mode is active. No live API calls are made during scripted demo beats.
+Fixtures are served when `DEMO_MODE=true`. Zero live API calls are made during scripted beats.
 
 ---
 
-## Environment Variables Summary
+## Environment Variables Reference
 
 ```env
+# OpenAI
 OPENAI_API_KEY=sk-...
-SARVAM_API_KEY=...          # optional
-DEMO_MODE=true              # enables fixture serving for pre-cached demo beats
-CHROMA_PERSIST_DIR=./chroma_data
-DATABASE_URL=sqlite:///./kleos.db
+
+# Supabase
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+SUPABASE_STORAGE_BUCKET=kleos-artifacts
+
+# Redis Cloud
+REDIS_URL=redis://your-endpoint.redis.com:12345
+REDIS_PASSWORD=...
+
+# App
+DEMO_MODE=false
 ```
 
 ---
 
-## Known Setup Considerations
+## Known Considerations
 
-- URL ingestion is handled server-side. CORS prevents the browser from fetching external URLs directly. All URL ingestion requests go through the FastAPI backend.
-- DOCX image extraction is not supported in the hackathon version. python-docx extracts text only; embedded images are skipped with a logged note.
-- python-pptx can extract both text and images from PPTX files. Images are passed to GPT-4o Vision.
-- File size limits are enforced server-side: PDF 20MB, DOCX 10MB, PPTX 25MB, Image 5MB.
+- URL ingestion is server-side only. CORS prevents browser-side fetching of external URLs.
+- `SUPABASE_SERVICE_ROLE_KEY` (not anon key) is required for server-side Supabase access. Never expose this in the frontend.
+- The OpenAI Realtime API charges per audio minute — keep test sessions short during development.
+- pyppeteer's Chromium download (~150MB) only happens once per environment. Cache the download path in `.env` as `PYPPETEER_HOME` if needed.
+- Celery workers must share the same `.env` as the main FastAPI process.
 
 ---
 
-*Update this file as the build progresses with any environment-specific discoveries.*
+*Update this file with any environment-specific discoveries during the build.*

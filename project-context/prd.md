@@ -14,7 +14,9 @@ Kleos is a post-chat AI interface in which ideas are typed graph nodes on a spat
 **PS01:** Making the AI's reasoning process visible, inspectable, and manipulable in real time.
 **PS06:** Turning AI memory from a background capability into a first-class interaction where users actively negotiate what gets remembered, at what scope, and for how long.
 
-All AI capability is orchestrated through standard tool-calling, structured output prompting, and streaming APIs on top of GPT-4o and GPT-4o-mini. The innovation is entirely in the HCI layer.
+All AI capability is orchestrated through standard tool-calling, structured output prompting, and streaming APIs (SSE + WebSocket) on top of GPT-4o, gpt-4o-realtime-preview, and GPT-4o-mini. The innovation is entirely in the HCI layer.
+
+**Voice is the primary input channel.** The OpenAI Realtime API (gpt-4o-realtime-preview) connects via a persistent WebSocket. All 12 interaction verbs are voice-addressable. Text input and document drop are secondary input modes, not the default.
 
 ---
 
@@ -167,8 +169,8 @@ Toggle-only horizontal scrubber. Keyframe thumbnails at major milestones. Never 
 **C4. Compare Mode** | PS01 | MVP (basic), Differentiator (with diff overlay)
 Two branches displayed side by side with auto-highlighted differences. Branch Rail → "Compare" action pins two branches. Delta nodes highlighted in amber.
 
-**C5. Voice Input** | Both | Differentiator (Nice to Have for MVP build)
-Sarvam AI STT → GPT-4o node extraction. All 12 grammar verbs are voice-addressable. Moved from MVP build hours 28–32 due to 6–8 hour integration cost.
+**C5. Voice Input — OpenAI Realtime API** | Both | **MVP** (elevated from Differentiator)
+The primary input channel. gpt-4o-realtime-preview connects via a persistent WebSocket (FastAPI /ws/voice ↔ OpenAI Realtime API). Real-time speech-to-text transcription and tool calling in one streaming connection — no separate STT step. All 12 grammar verbs are voice-addressable. Canvas mutations from voice and text are identical — input modality is invisible to the canvas service. Voice transcript displayed in real time below the canvas.
 
 **C7. Quick Override** | Both | Differentiator
 Right-click any cluster → "Override mode for this cluster" → temporary per-cluster reasoning mode. Cluster shows a small colored badge indicating the override. Override expires at session end. Does not affect memory behavior.
@@ -209,9 +211,8 @@ PDF generation: marked.js (render) + puppeteer (PDF). Fallback: pdfkit if Chromi
 | Image / Screenshot | Should Have | GPT-4o Vision | Concept, Evidence |
 | GitHub repo URL | Should Have | GitHub API → GPT-4o | Constraint, Architecture Idea |
 | CSV / XLSX | Nice to Have | pandas → GPT-4o | Evidence, Constraint |
-| Voice | Nice to Have | Sarvam AI STT → GPT-4o | Idea, Question |
-| Source code files | Nice to Have | AST → GPT-4o | Constraint, Architecture Idea |
-| Video transcript | Future | Sarvam transcription → GPT-4o | Idea, Evidence |
+| Voice | MVP | OpenAI Realtime API WebSocket — real-time STT + tool calling | Idea, Question, all node types via verb grammar |
+| Video transcript | Future | Whisper-compatible STT → GPT-4o | Idea, Evidence |
 
 File size limits: PDF 20MB, DOCX 10MB, PPTX 25MB, Image 5MB. Enforce server-side with a clear error message.
 

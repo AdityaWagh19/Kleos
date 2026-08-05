@@ -26,6 +26,13 @@
 
 Update to [x] as each feature is completed. Refer to tasks.md for granular task tracking.
 
+### Voice (Core — Primary Input Channel)
+
+- [ ] C5. Voice Input — OpenAI Realtime API (WebSocket channel)
+- [ ] WebSocket proxy (/ws/voice)
+- [ ] Web Audio API mic capture (frontend)
+- [ ] Voice transcript display
+
 ### PS06 — Memory Negotiation
 
 - [ ] A1. Four-Tier Memory Architecture
@@ -91,8 +98,9 @@ Record any implementation that deviates from architecture.md, with the reason.
 
 | Component | Designed | Implemented | Reason for Change |
 |---|---|---|---|
-| PDF export | puppeteer | | Pending Chromium availability check |
+| PDF export | pyppeteer | | Pending Chromium availability check on EC2 |
 | Streaming | GPT-4o primary, GPT-4o-mini fallback | | Pending streaming reliability test (Hours 0–4) |
+| Voice proxy | FastAPI WebSocket ↔ Realtime API | | Pending bidirectional proxy latency test (Hours 0–4) |
 
 ---
 
@@ -104,10 +112,11 @@ Record actual measured values vs. targets. Update during testing (Hours 26–32)
 |---|---|---|---|
 | Impact Halo response time | < 100ms | | |
 | Reasoning Ribbon first token | < 3s | | |
+| Voice-to-canvas latency | < 5s | | |
 | Memory Panel load | < 300ms | | |
 | Branch comparison render | < 1s | | |
 | PDF export time | < 8s | | |
-| ChromaDB query latency | < 30ms | | |
+| Redis Cloud query latency | < 30ms | | |
 
 ---
 
@@ -150,9 +159,9 @@ Track which architecture.md open questions were resolved and how.
 | Question | Resolved At Hour | Answer |
 |---|---|---|
 | GPT-4o mid-stream reasoning_step reliability | | |
-| Chromium availability in demo environment | | |
-| ChromaDB latency at demo scale | | |
-| react-flow concurrent SSE update behavior | | |
+| Chromium availability on EC2 for pyppeteer | | |
+| FastAPI WebSocket ↔ OpenAI Realtime API proxy latency | | |
+| Redis Cloud write/read latency on demo dataset | | |
 
 ---
 

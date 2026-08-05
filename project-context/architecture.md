@@ -8,37 +8,47 @@
 
 Kleos does not build novel AI. It is an HCI layer on top of mature AI APIs.
 
-All AI capability is achieved through: system prompt engineering, structured output (JSON mode), tool calling, streaming (SSE), and retrieval (ChromaDB semantic search). No custom ML models. No custom training pipelines. The innovation is entirely in the interaction design and the HCI layer built on top of standard AI outputs.
+All AI capability is achieved through: system prompt engineering, structured output (JSON mode), tool calling, streaming (SSE + WebSocket), and retrieval (Redis vector search). No custom ML models. No custom training pipelines. The innovation is entirely in the interaction design and the HCI layer built on top of standard AI outputs.
 
 ---
 
 ## System Architecture
 
 ```
-FRONTEND (React + TypeScript)
+FRONTEND (React + TypeScript + Vite)
 ├── Canvas Engine:          react-flow (nodes, edges, drag, zoom, pan)
+├── Voice Layer:            Web Audio API mic capture → WebSocket → Realtime API
 ├── Branch Rail:            custom tab strip component
 ├── Status Pill:            header component — 2 states: Working / Ready
 ├── Memory Panel:           React list with Tier tabs (left slide-out)
 ├── Assumption Audit Panel: React drawer (right side, collapsible)
 ├── Reasoning Ribbon:       SSE-driven status bar (bottom, transient)
-├── Voice Layer (opt.):     Sarvam AI STT/TTS + Web Audio API
-└── Export:                 marked.js (Markdown render) + puppeteer (PDF)
+└── Export:                 marked.js (Markdown render) + pyppeteer (PDF via backend)
 
-BACKEND (Python + FastAPI)
-├── LLM Orchestration:      OpenAI Python SDK (tool-calling + streaming)
-├── Memory Service:         SQLite — 4-tier partitioned tables
-├── Vector Store:           ChromaDB local (node embeddings + memory embeddings)
+BACKEND (Python 3.11 + FastAPI + Uvicorn)
+├── LLM Orchestration:      OpenAI Python SDK (GPT-4o structured output + GPT-4o-mini governance)
+├── Voice Proxy:            FastAPI WebSocket (/ws/voice) ↔ OpenAI Realtime API WebSocket
+├── Memory Service:         Supabase PostgreSQL — 4-tier partitioned tables
+├── Vector Search:          Redis Cloud (RedisVSS) — node and memory embeddings (V1)
 ├── Ingestion Pipeline:     PyMuPDF, python-docx, python-pptx, requests + BeautifulSoup
-├── Event Log:              SQLite events table (for Rewind / Timeline)
-├── SSE Streaming:          FastAPI StreamingResponse
-└── JSON Export:            FastAPI endpoint — canvas data model serialization
+├── File Storage:           Supabase Storage (presigned URLs for uploads and exports)
+├── Background Jobs:        Celery + Redis — heavy document processing offloaded from HTTP threads
+├── Event Log:              Supabase PostgreSQL events table (for Rewind / Timeline)
+└── SSE Streaming:          FastAPI StreamingResponse (sse-starlette)
 
-AI SERVICES (External APIs only)
-├── GPT-4o:                 Primary compilation, structured output, tool-calling
-├── GPT-4o-mini:            Contradiction detection, memory classification, Session Audit
-├── text-embedding-3-small: Semantic similarity (ChromaDB embeddings)
-└── Sarvam AI (optional):   Multilingual STT + TTS
+INFRASTRUCTURE (AWS EC2)
+├── Reverse Proxy:          NGINX (TLS termination, request routing)
+├── Application Server:     Uvicorn + FastAPI (HTTP + WebSocket)
+└── Task Workers:           Celery workers (document ingestion, PDF export)
+
+MANAGED CLOUD SERVICES
+├── Supabase:               PostgreSQL (relational storage) + Supabase Storage (file storage)
+└── Redis Cloud:            Redis Stack (vector search + Celery queue + SSE pub/sub + caching)
+
+AI SERVICES (External APIs — no infrastructure cost)
+├── GPT-4o:                 Primary compilation, structured output, tool-calling, Vision (images)
+├── gpt-4o-realtime-preview: Voice-first input channel — real-time STT + tool calling over WebSocket
+└── GPT-4o-mini:            Contradiction detection, memory classification, Session Audit, Ribbon fallback
 ```
 
 ---
@@ -47,16 +57,17 @@ AI SERVICES (External APIs only)
 
 | Component | Choice | Rationale | Trade-off |
 |---|---|---|---|
-| Canvas rendering | react-flow | Battle-tested, rich node/edge data model, 300+ node performance | Less free-form than tldraw — correct trade-off for a structured graph product |
-| Graph store | In-memory dict + SQLite | No Neo4j setup; relationships stored as JSON arrays in node records | Loses graph query power; O(N) Impact Halo traversals — acceptable at demo scale (<100 nodes) |
-| Vector store | ChromaDB (local) | No external service; runs in-process; sufficient for <200 nodes | Limited to local disk; switch to managed vector DB post-hackathon |
-| Primary LLM | GPT-4o | Best structured output + tool-calling; streaming support | Cost vs. GPT-4o-mini; mitigated by model routing |
-| Classification LLM | GPT-4o-mini | 10x cheaper; suitable for binary/classification tasks | ~20% quality trade-off on nuanced tasks; acceptable for contradiction detection and memory classification |
-| Memory storage | SQLite (4 partitioned tables) | Simple, queryable, transactional, hackathon-ready | Not real-time; memory reads <10ms at demo scale |
-| Streaming | FastAPI SSE | Browser-native; no WebSocket handshake complexity | — |
-| Voice | Sarvam AI | Best-in-class Indian language support (Hindi, Tamil, Telugu, Kannada, Bengali, Marathi, Gujarati) | 6–8 hour integration cost; moved to Differentiator |
-| PDF export | puppeteer | Clean structured output | Requires Chromium on server. If unavailable: fall back to pdfkit |
-| Embeddings | text-embedding-3-small | Cheapest embedding model; sufficient semantic similarity | — |
+| Canvas rendering | react-flow v11 | Battle-tested, rich node/edge data model, 300+ node performance | Less free-form than tldraw — correct trade-off for a structured graph product |
+| Primary database | Supabase (PostgreSQL) | Managed, production-grade, no infra management; built-in auth and real-time subscriptions | Supabase free tier has row limits — fine for hackathon and early V1 |
+| File storage | Supabase Storage | Eliminates S3 entirely; integrated with the same Supabase project; presigned URL support | Storage bandwidth limits on free tier |
+| Vector search | Redis Cloud (RedisVSS) | Redis Stack combines vector search + task queue + pub/sub + caching in one managed service; no separate vector DB needed at hackathon scale | Limited ANN index tuning vs. Pinecone — migrate post-V1 if needed |
+| Task queue | Celery + Redis | Offloads heavy PDF/DOCX parsing from HTTP request threads; prevents API timeouts on large documents | Adds operational complexity; essential for production correctness |
+| Voice channel | OpenAI Realtime API | Native real-time STT + tool calling in one WebSocket connection; all 12 verbs voice-addressable with no separate transcription step | WebSocket infrastructure vs. simple REST STT; justified by voice-first principle |
+| Primary LLM | GPT-4o | Best structured output + tool-calling; streaming support; Vision for images | Cost vs. GPT-4o-mini; mitigated by model routing |
+| Governance LLM | GPT-4o-mini | 10x cheaper; suitable for binary/classification tasks | ~20% quality trade-off on nuanced tasks; acceptable for contradiction detection and memory classification |
+| PDF export | pyppeteer (headless Chromium) | Clean structured PDF output; Chromium on EC2 is controllable | Chromium on EC2 requires setup; pdfkit is the fallback |
+| Embeddings | text-embedding-3-small | Deferred to V1 — at hackathon scale (< 100 nodes) full canvas state fits in GPT-4o context window | No semantic retrieval at hackathon scale; acceptable trade-off |
+| Deployment | AWS EC2 | Single-instance deployment; NGINX + Uvicorn + Celery on one machine | Not horizontally scalable at hackathon scope — sufficient for demo |
 
 ---
 
@@ -64,13 +75,51 @@ AI SERVICES (External APIs only)
 
 - **Primary (supported):** Chrome
 - **Secondary (post-hackathon):** Firefox
-- **Unsupported (hackathon):** Safari — due to WebRTC and SSE differences
+- **Unsupported (hackathon):** Safari — WebSocket and Web Audio API differences
+
+---
+
+## AI Model Specification
+
+### Voice Channel — gpt-4o-realtime-preview
+
+The primary input channel. Connected via a persistent WebSocket between the frontend (Web Audio API) and the backend (`/ws/voice`), which proxies to the OpenAI Realtime API.
+
+- Handles real-time speech-to-text transcription in the audio stream
+- Invokes the same 8 tool-calling vocabulary (same schema as the text compilation path)
+- Voice utterances map to the 12 interaction verbs (`"branch on the cost assumption"` → `create_branch` tool call)
+- No separate STT step — transcription and reasoning happen in one streaming connection
+
+**WebSocket flow:**
+```
+Browser (Web Audio API mic capture)
+  → WebSocket to FastAPI /ws/voice
+  → FastAPI proxies to OpenAI Realtime API WebSocket
+  → Realtime API streams back: transcript + tool calls + text response
+  → FastAPI routes tool call results to canvas service → SSE to frontend
+```
+
+### Primary Compilation — gpt-4o
+
+Invoked on document Drop and canvas mutation operations. Uses structured output (JSON mode) and the 8-tool vocabulary. Also handles Vision inputs (screenshot, slide image analysis).
+
+### Governance — gpt-4o-mini
+
+Invoked for high-frequency, low-stakes classification tasks:
+- Contradiction detection between node pairs
+- Memory Negotiation Card trigger evaluation
+- Session Memory Audit inference generation
+- Reasoning Ribbon narration (fallback if gpt-4o streaming is unreliable)
+
+### Embeddings — text-embedding-3-small (Deferred to V1)
+
+At hackathon demo scale (< 100 nodes), the entire canvas state serializes to approximately 6,000–10,000 tokens — well within GPT-4o's 128K context window. Full-canvas context injection is used instead of semantic retrieval. Vector embeddings are a V1 optimization for production-scale canvases.
 
 ---
 
 ## AI Tool-Calling Architecture
 
-The AI operates as an agent with a defined tool vocabulary. It does not produce free-form text instructions — it invokes registered functions.
+The AI operates as an agent with a defined tool vocabulary. Both the text compilation path (GPT-4o structured output) and the voice path (Realtime API tool calling) invoke the same 8 registered functions. Canvas state mutations are identical regardless of input modality.
 
 ```json
 {
@@ -110,7 +159,7 @@ A single compilation call returns this structure. It simultaneously drives: Reas
   "reasoning_steps": [
     {
       "step": 1,
-      "action": "extracted_from_pdf",
+      "action": "extracted_from_source",
       "detail": "page 3, paragraph 2",
       "confidence": "high"
     },
@@ -142,13 +191,19 @@ A single compilation call returns this structure. It simultaneously drives: Reas
 
 ## Streaming Architecture
 
+### Text Path (HTTP SSE)
+
 The Reasoning Ribbon requires intermediate output before the final compilation result.
 
 **Primary approach:** GPT-4o with streaming enabled. The system prompt instructs the model to emit `{"event": "reasoning_step", "step": N, "text": "..."}` JSON objects as it processes, followed by the final compilation output.
 
-**Fallback approach (if primary is unreliable):** Two sequential calls — a fast GPT-4o-mini call that generates and streams the reasoning steps list first, followed by the primary GPT-4o call for the full compilation. Adds approximately 500ms of latency but guarantees ribbon content.
+**Fallback approach:** Two sequential calls — a fast GPT-4o-mini call that generates and streams the reasoning steps list first, followed by the primary GPT-4o call for the full compilation. Adds approximately 500ms but guarantees Ribbon content.
 
-**Engineering constraint:** Prototype the streaming approach in the first 4 hours of the hackathon. If the primary approach proves unreliable within the prototype, switch immediately to the fallback. Do not spend more than 2 hours debugging streaming reliability.
+**Engineering constraint:** Prototype the streaming approach in the first 4 hours. If the primary approach proves unreliable, switch immediately to the fallback. Do not spend more than 2 hours debugging streaming reliability.
+
+### Voice Path (WebSocket)
+
+The OpenAI Realtime API connection is a persistent bidirectional WebSocket. Audio chunks are streamed from the browser microphone. Transcription and AI responses stream back. Tool call results from the Realtime API are routed through the canvas service and delivered to the frontend via the existing SSE channel — so the Reasoning Ribbon receives voice-triggered compilation steps identically to text-triggered ones.
 
 ---
 
@@ -160,12 +215,13 @@ The Reasoning Ribbon requires intermediate output before the final compilation r
   "type": "idea | evidence | assumption | question | constraint | insight | decision | source",
   "text": "string",
   "confidence": "low | medium | high",
-  "provenance_type": "document | core_memory | ai_inference | parametric | user_created",
+  "provenance_type": "document | core_memory | ai_inference | parametric | user_created | voice_input",
   "provenance_detail": {
     "source_id": "uuid | null",
     "artifact_name": "filename.pdf | null",
     "page": 3,
-    "memory_tier": "0 | 1 | 3 | null"
+    "memory_tier": "0 | 1 | 3 | null",
+    "voice_transcript_segment": "string | null"
   },
   "memory_scope": "session | workspace | global | null",
   "memory_tier": "0 | 1 | 2 | 3 | null",
@@ -176,6 +232,7 @@ The Reasoning Ribbon requires intermediate output before the final compilation r
   "branch_id": "uuid",
   "created_at": "ISO8601",
   "created_by": "user | ai",
+  "input_modality": "text | voice | drop",
   "workspace_mode_at_creation": "analytical | creative | critical | strategic",
   "relationships": [
     {
@@ -199,8 +256,9 @@ Used by: Rewind verb, Thinking Timeline, Activity Log overlay.
 {
   "event_id": "uuid",
   "timestamp": "ISO8601",
-  "event_type": "node_created | node_deleted | edge_created | merge | branch_created | branch_committed | assumption_overridden | memory_accepted | memory_rejected | mode_changed | quick_override_set",
+  "event_type": "node_created | node_deleted | edge_created | merge | branch_created | branch_committed | assumption_overridden | memory_accepted | memory_rejected | mode_changed | quick_override_set | voice_command_received",
   "author": "user | ai",
+  "input_modality": "text | voice | drop",
   "affected_node_ids": ["uuid"],
   "delta": {"before": {}, "after": {}},
   "canvas_id": "uuid",
@@ -213,19 +271,19 @@ Used by: Rewind verb, Thinking Timeline, Activity Log overlay.
 
 ## Memory Data Model
 
-### SQLite Table Structure (4-tier partitioned)
+### Supabase PostgreSQL Table Structure (4-tier partitioned)
 
 ```sql
 CREATE TABLE memories (
   id          TEXT PRIMARY KEY,
   tier        INTEGER NOT NULL,   -- 0: Core, 1: Session, 2: Inferred, 3: Source
   text        TEXT NOT NULL,
-  provenance  TEXT,               -- JSON: {session_id, artifact_id, trigger}
+  provenance  JSONB,              -- {session_id, artifact_id, trigger, input_modality}
   canvas_id   TEXT,               -- NULL for Tier 0 (global)
-  created_at  TEXT NOT NULL,
-  last_used   TEXT,
-  quarantined INTEGER DEFAULT 0,  -- 1 if Tier 2 and not yet ratified
-  archived    INTEGER DEFAULT 0
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_used   TIMESTAMPTZ,
+  quarantined BOOLEAN DEFAULT FALSE,  -- TRUE if Tier 2 and not yet ratified
+  archived    BOOLEAN DEFAULT FALSE
 );
 ```
 
@@ -234,9 +292,9 @@ CREATE TABLE memories (
 At prompt construction time, context is assembled in this order:
 
 1. Workspace Mode system prompt (configures reasoning posture and memory weighting)
-2. Tier 0 (Core) — all active core memories, filtered by domain relevance to current operation
+2. Tier 0 (Core) — all active core memories, filtered by domain relevance
 3. Tier 1 (Session) — all session memories for the current canvas (truncated to most recent 10 if many)
-4. Tier 3 (Source) — top-N by ChromaDB relevance to current operation
+4. Tier 3 (Source) — relevant source memories (at demo scale: all; at V1 scale: top-N by Redis vector search)
 5. Tier 2 (Inferred) — **NEVER included until explicitly accepted by user**
 6. Canvas state snapshot — current subgraph serialized as structured JSON
 
@@ -246,51 +304,37 @@ At prompt construction time, context is assembled in this order:
 
 ## LLM Cost and Token Architecture
 
+### Model Routing
+
+| Task | Model | Protocol | Typical Cost |
+|---|---|---|---|
+| Voice input — real-time STT + tool calling | gpt-4o-realtime-preview | WebSocket | ~$0.06/min audio in, $0.024/min audio out |
+| Primary compilation (Drop → nodes) | GPT-4o | REST + SSE | $0.005–0.040 per operation |
+| Reasoning Ribbon steps (fallback) | GPT-4o-mini | REST + SSE | $0.0003 per operation |
+| Contradiction detection | GPT-4o-mini | REST | $0.0002 per operation |
+| Memory Negotiation Card trigger | GPT-4o-mini | REST | $0.0001 per operation |
+| Session Memory Audit | GPT-4o-mini | REST | $0.001 per operation |
+| Counterfactual Branch recompile | GPT-4o | REST + SSE | $0.005–0.020 per operation |
+| Vision (screenshot / slide image) | GPT-4o | REST | ~$0.005 per image |
+
+### Per-Operation Token Budgets
+
+| Operation | Context Budget | Output Budget | Notes |
+|---|---|---|---|
+| Voice command compilation | Streaming; token budget managed by Realtime API session | — | Session-level token usage tracked |
+| Drop: PDF (10 pages) | 6,000–10,000 tokens | 2,000–4,000 tokens | Chunked if needed |
+| Drop: plain text | 500–2,000 tokens | 500–1,500 tokens | Direct extraction |
+| Assumption Audit | 3,000–5,000 tokens | 500–1,000 tokens | Current subgraph + memories |
+| Contradiction detection | 500–1,000 tokens | 100–200 tokens | New node pairs only |
+| Session Memory Audit | 500–1,500 tokens | 200–500 tokens | Session events summary |
+
 ### Technical Limits vs. Cost Thresholds
 
 | Dimension | Technical Limit | Cost Threshold | Action When Exceeded |
 |---|---|---|---|
 | GPT-4o context window | 128,000 tokens | 20,000 tokens per call | Trigger context summarization |
 | Per-session cumulative spend | No hard API limit | $2.00 per session (demo) | Show "Context getting large" chip |
-| Single compilation call | 128K token window | 12,000 tokens per call | Chunk input; process in parts |
-
-### Model Routing
-
-| Task | Model | Typical Cost |
-|---|---|---|
-| Primary compilation (Drop → nodes) | GPT-4o | $0.005–0.040 per operation |
-| Reasoning Ribbon steps (fallback) | GPT-4o-mini | $0.0003 per operation |
-| Contradiction detection | GPT-4o-mini | $0.0002 per operation |
-| Memory pattern detection | GPT-4o-mini | $0.0001 per operation |
-| Session Memory Audit | GPT-4o-mini | $0.001 per operation |
-| Counterfactual Branch recompile | GPT-4o | $0.005–0.020 per operation |
-| Voice transcription | Sarvam AI STT | Per-second pricing |
-| Semantic similarity | text-embedding-3-small | $0.00002 per 1K tokens |
-
-### Per-Operation Token Budgets
-
-| Operation | Context Budget | Output Budget | Notes |
-|---|---|---|---|
-| Drop: PDF (10 pages) | 6,000–10,000 tokens | 2,000–4,000 tokens | Chunked; top-N relevant chunks by ChromaDB |
-| Drop: plain text | 500–2,000 tokens | 500–1,500 tokens | Direct extraction |
-| Assumption Audit | 3,000–5,000 tokens | 500–1,000 tokens | Current canvas subgraph + memories |
-| Contradiction detection | 500–1,000 tokens | 100–200 tokens | New node pairs only |
-| Memory Negotiation Card | 200–400 tokens | 50–100 tokens | GPT-4o-mini; watches session events |
-| Counterfactual Branch | 2,000–6,000 tokens | 1,000–3,000 tokens | Scoped to impact_nodes subgraph |
-| Session Memory Audit | 500–1,500 tokens | 200–500 tokens | Session events summary |
-| Export Reasoning Summary | 4,000–8,000 tokens | 500–1,000 tokens | Full canvas state → narrative |
-
-### Context Window Management
-
-**Subgraph scoping:** Only canvas nodes semantically related to the current operation are included (ChromaDB distance threshold).
-
-**Cluster summarization:** A cluster of N nodes is represented as a 3-sentence summary + the 2 most-connected nodes in full, unless the operation directly concerns a node in that cluster. Typically compresses canvas context by 70–85%.
-
-**Tiered memory truncation:** Tier 0 — all items. Tier 1 — most recent 10 items. Tier 3 — top-N by ChromaDB relevance.
-
-**Context compression trigger:** When assembled context exceeds 15,000 tokens, show: "The workspace context is getting large. Would you like me to summarize older clusters to free up context?"
-
-**Demo caching:** All LLM responses for scripted demo beats are pre-cached as JSON fixtures. Zero live API calls during critical demo moments.
+| Realtime API session | 15-minute default | — | Re-establish connection with session summary as context |
 
 ---
 
@@ -298,19 +342,20 @@ At prompt construction time, context is assembled in this order:
 
 To be filled in as routes are implemented during the build.
 
-| Method | Route | Description | Status |
-|---|---|---|---|
-| POST | `/api/canvas` | Create a new canvas | |
-| GET | `/api/canvas/{id}` | Get canvas state | |
-| POST | `/api/canvas/{id}/drop` | Process a dropped artifact | |
-| GET | `/api/canvas/{id}/stream` | SSE stream for Reasoning Ribbon | |
-| POST | `/api/canvas/{id}/branch` | Create a new branch | |
-| GET | `/api/canvas/{id}/memory` | Get all memory items | |
-| POST | `/api/canvas/{id}/memory` | Create a memory item | |
-| PUT | `/api/canvas/{id}/memory/{mem_id}` | Update a memory item | |
-| DELETE | `/api/canvas/{id}/memory/{mem_id}` | Archive a memory item | |
-| POST | `/api/canvas/{id}/memory/{mem_id}/ratify` | Accept a Tier 2 memory | |
-| GET | `/api/canvas/{id}/export` | JSON export | |
+| Method | Route | Protocol | Description | Status |
+|---|---|---|---|---|
+| POST | `/api/canvas` | HTTP | Create a new canvas | |
+| GET | `/api/canvas/{id}` | HTTP | Get canvas state | |
+| POST | `/api/canvas/{id}/drop` | HTTP | Process a dropped artifact (queued to Celery) | |
+| GET | `/api/canvas/{id}/stream` | SSE | Reasoning Ribbon step stream | |
+| WS | `/ws/voice` | WebSocket | Voice channel — proxies to OpenAI Realtime API | |
+| POST | `/api/canvas/{id}/branch` | HTTP | Create a new branch | |
+| GET | `/api/canvas/{id}/memory` | HTTP | Get all memory items | |
+| POST | `/api/canvas/{id}/memory` | HTTP | Create a memory item | |
+| PUT | `/api/canvas/{id}/memory/{mem_id}` | HTTP | Update a memory item | |
+| DELETE | `/api/canvas/{id}/memory/{mem_id}` | HTTP | Archive a memory item | |
+| POST | `/api/canvas/{id}/memory/{mem_id}/ratify` | HTTP | Accept a Tier 2 memory | |
+| GET | `/api/canvas/{id}/export` | HTTP | JSON export | |
 
 ---
 
@@ -322,32 +367,36 @@ To be filled in as routes are implemented during the build.
 |---|---|---|
 | Impact Halo query | < 100ms | Pre-compute `impact_nodes` at node creation; store in node record; do not compute on hover |
 | Reasoning Ribbon first token | < 3s | Use SSE streaming; route to GPT-4o-mini if GPT-4o is too slow |
-| Memory Panel load | < 300ms | Demo data must not exceed 20 items; paginate if > 50 |
-| Branch comparison render | < 1s | Pre-render the second branch in background when Compare mode is activated |
+| Voice command to first canvas change | < 5s | Realtime API WebSocket latency + tool call processing |
+| Memory Panel load | < 300ms | Demo data must not exceed 20 items |
+| Branch comparison render | < 1s | Pre-render second branch in background when Compare mode is activated |
 | PDF export | < 8s | Show loading state; fall back to Markdown-only if > 10s |
 
 ### Demo Integrity Constraints (Non-Negotiable)
 
-- All LLM responses for scripted demo beats are pre-cached as JSON fixtures. Zero live API calls during critical moments. Live calls used only for judge Q&A, with exponential backoff and a graceful "Let me think about that" placeholder.
-- Canvas must never be blank mid-demo. Start with a pre-populated canvas. Compilation failure falls back to pre-cached nodes.
-- No personal data in demo dataset. All content is synthetic and clearly fictional.
-- All API failures show an inline error on the affected element with a [Retry] button. Canvas state must not be lost due to a failed API call.
+- All LLM responses for scripted demo beats are pre-cached as JSON fixtures. Zero live API calls during scripted beats.
+- Canvas must never be blank mid-demo. Compilation failure falls back to pre-cached nodes.
+- No personal data in the demo dataset. All content is synthetic and clearly fictional.
+- All API failures show an inline error on the affected element with a [Retry] button. Canvas state must not be lost.
+- Voice must be functional for the demo — it is the primary input channel, not a peripheral feature.
 
 ### Principle-Based Constraints (Binding)
 
-- No feature that cannot be explained to a judge in one sentence. If the affordance requires an explanation, the affordance is wrong.
-- No AI action that cannot be undone or traced. Every canvas reorganization, memory inference, and cluster must be traceable via the Event Log.
+- No feature that cannot be explained to a judge in one sentence.
+- No AI action that cannot be undone or traced.
+- Voice and text paths must produce identical canvas mutations. Input modality is invisible to the canvas service.
 
 ### Error Handling Requirements
 
 | Failure | Behavior |
 |---|---|
-| LLM API failure | Inline error on affected node/cluster: "Compilation failed — [Retry]." Canvas state preserved. |
-| ChromaDB unavailable | Fall back to keyword search for memory retrieval. Log the fallback in the Activity Log. |
-| PDF parse failure | Error on Source node: "Could not parse this file. Try a different format." Do not crash. |
-| Sarvam AI unavailable | Fall back to Web Speech API with warning: "Multilingual voice unavailable — using system voice." |
-| URL fetch failure | Show: "Could not reach this URL. Paste the content manually instead." Offer a text input fallback. |
-| File too large | Show: "File too large. Maximum is [X]MB for [type]. Try splitting the document." |
+| LLM API failure (text path) | Inline error on affected node/cluster: "Compilation failed — [Retry]." Canvas state preserved. |
+| Realtime API WebSocket disconnect | Auto-reconnect with exponential backoff. Show "Voice reconnecting..." in the Status Pill. |
+| ChromaDB / Redis unavailable | Fall back to keyword search for memory retrieval. Log the fallback. |
+| PDF parse failure | Error on Source node: "Could not parse this file. Try a different format." |
+| URL fetch failure | "Could not reach this URL. Paste the content manually instead." Text input fallback offered. |
+| File too large | "File too large. Maximum is [X]MB for [type]. Try splitting the document." |
+| Supabase unavailable | Serve from Redis cache if available. Show degraded-mode banner. |
 
 ### File Size Limits
 
@@ -358,20 +407,16 @@ To be filled in as routes are implemented during the build.
 | PPTX | 25MB |
 | Image | 5MB |
 
-Enforce server-side. Show a clear error if exceeded.
-
 ---
 
 ## Critical Open Questions (Must Resolve Early)
 
-These are not design questions — they are implementation blockers that change the architecture if answered differently.
-
 | Question | Must Resolve By | Impact If Wrong |
 |---|---|---|
-| Can GPT-4o reliably emit `reasoning_step` JSON objects mid-stream with a strict system prompt? | Hours 0–4 | Determines whether 1-call or 2-call streaming architecture is used |
-| Does the demo environment support Chromium? | Environment setup | Determines PDF export library (puppeteer vs. pdfkit) |
-| ChromaDB local latency at demo scale (< 50 nodes, < 20 memory items) — is it < 30ms? | Hours 0–6 | Determines whether ChromaDB needs to be replaced or pre-warmed |
-| Can react-flow handle concurrent SSE updates and node creation events without render issues? | Hours 0–6 | Determines whether SSE events need to be buffered before flushing to the canvas |
+| Can GPT-4o reliably emit `reasoning_step` JSON objects mid-stream? | Hours 0–4 | Determines 1-call vs. 2-call streaming architecture |
+| Does the EC2 instance support Chromium for pyppeteer? | Environment setup | Determines PDF export library |
+| OpenAI Realtime API WebSocket — can FastAPI proxy it without latency issues? | Hours 0–4 | Determines voice channel architecture |
+| Redis Cloud (RedisVSS) write/read latency on demo dataset | Hours 0–6 | Determines caching and retrieval strategy |
 
 ---
 
