@@ -39,6 +39,7 @@ Update to [x] as each feature is completed. Refer to tasks.md for granular task 
 - [ ] A2. Memory Negotiation Card
 - [ ] A3. Memory Panel (flat list, 4 tabs)
 - [ ] A4. Memory CRUD Controls
+- [ ] A5. Memory Freshness Indicators
 - [ ] A6. Session Memory Audit
 - [ ] A7. Inline Scope Chips
 - [ ] D1. Incognito Mode
@@ -48,6 +49,9 @@ Update to [x] as each feature is completed. Refer to tasks.md for granular task 
 - [ ] B1. Reasoning Ribbon
 - [ ] B2. Assumption Audit Panel (with Impact Halo)
 - [ ] B3. Provenance Badges (5 types)
+- [ ] B4. Trust Lens Toggle
+- [ ] B5. Counterfactual Branches
+- [ ] B6. Reasoning Path Walk
 - [ ] B7. Contradiction Flag (basic: red edge + hover text)
 
 ### Canvas and Workspace
@@ -55,8 +59,11 @@ Update to [x] as each feature is completed. Refer to tasks.md for granular task 
 - [ ] Workspace Modes (all 4, system prompt variants)
 - [ ] C1. Core Canvas (react-flow, node rendering, cluster backgrounds)
 - [ ] C2. Status Pill + per-element micro-interactions
+- [ ] C3. Thinking Timeline
 - [ ] C4. Compare Mode (basic side-by-side)
+- [ ] C7. Quick Override
 - [ ] D2. Pause / Stop Controls
+- [ ] D3. Activity Log
 - [ ] Multimodal Drop (PDF + text + DOCX)
 - [ ] Onboarding (Mode Selector + suggestion chips)
 - [ ] Export (Markdown + PDF)
@@ -70,14 +77,6 @@ Record here when a planned feature is deferred, with the hour and reason.
 
 | Feature | Deferred At Hour | Reason |
 |---|---|---|
-| B4. Trust Lens Toggle | Planned Hours 40–48 (if time) | |
-| B5. Counterfactual Branches | Pre-deferred (Differentiator) | Subgraph recompile complexity |
-| B6. Reasoning Path Walk | Pre-deferred (Differentiator) | |
-| C3. Thinking Timeline | Pre-deferred (Differentiator) | |
-| C5. Voice Input | Pre-deferred (Nice to Have) | 6–8 hour integration cost |
-| C7. Quick Override | Pre-deferred (Differentiator) | |
-| D3. Activity Log | Pre-deferred (Differentiator) | |
-| A5. Memory Freshness Indicators | Pre-deferred (Differentiator) | |
 | PPTX, CSV inputs | Pre-deferred (Should Have) | Not in demo script |
 
 ---

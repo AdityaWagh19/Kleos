@@ -32,8 +32,8 @@ Kleos is built around a different premise: **a semantic canvas that the AI activ
 
 ## Three Core Principles
 
-**1. Voice first, chat second.**
-The OpenAI Realtime API is the primary input channel. All 12 interaction verbs are voice-addressable. Text input is a fallback, not the default.
+**1. Voice and Chat are simultaneous parallel channels.**
+The OpenAI Realtime API handles voice input, while GPT-4o handles text chat. Both are primary channels. Neither is a fallback. All 12 interaction verbs are addressable via both channels at any time.
 
 **2. Reasoning is always visible.**
 Every AI compilation step is narrated in real time via the Reasoning Ribbon. Every assumption is listed and inspectable. Every node carries a provenance badge identifying its epistemic source.
@@ -127,7 +127,7 @@ Kleos/
 | Problem Statements | PS01 — Visualizing Explainable AI Reasoning |
 | | PS06 — Negotiating AI Memory |
 | Format | 48-hour build, live demo |
-| Team | 2 members |
+| Team | 4 members |
 
 ---
 

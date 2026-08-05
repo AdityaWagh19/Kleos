@@ -12,6 +12,18 @@ All AI capability is achieved through: system prompt engineering, structured out
 
 ---
 
+## Software Architecture Pattern
+
+Kleos backend follows **Hexagonal Architecture (Ports and Adapters)** to decouple core domain logic (graph manipulation, memory lifecycle) from external infrastructure.
+
+- **Core Domain:** Canvas state management, Node/Edge data model, Memory quarantine logic.
+- **Primary (Driving) Adapters:** FastAPI HTTP Routers (REST), FastAPI WebSocket Routers (Voice), Celery Task Consumers.
+- **Secondary (Driven) Adapters:** Supabase Client (DB/Storage), Redis Client (Cache/Queue/Vector), OpenAI REST Client, OpenAI Realtime API Client.
+
+This ensures that the core canvas service handles mutations identically, regardless of whether the trigger was a voice command (WebSocket adapter) or a text chat submission (HTTP adapter).
+
+---
+
 ## System Architecture
 
 ```
@@ -81,14 +93,14 @@ AI SERVICES (External APIs — no infrastructure cost)
 
 ## AI Model Specification
 
-### Voice Channel — gpt-4o-realtime-preview
+### Voice and Chat Input Channels — Simultaneous Primacy
 
-The primary input channel. Connected via a persistent WebSocket between the frontend (Web Audio API) and the backend (`/ws/voice`), which proxies to the OpenAI Realtime API.
+Voice and Text Chat are **simultaneous, parallel input channels**. Neither is a fallback.
 
-- Handles real-time speech-to-text transcription in the audio stream
-- Invokes the same 8 tool-calling vocabulary (same schema as the text compilation path)
-- Voice utterances map to the 12 interaction verbs (`"branch on the cost assumption"` → `create_branch` tool call)
-- No separate STT step — transcription and reasoning happen in one streaming connection
+- **Voice Channel (`gpt-4o-realtime-preview`):** Connected via a persistent WebSocket between the frontend (Web Audio API) and the backend (`/ws/voice`), which proxies to the OpenAI Realtime API. Handles real-time speech-to-text and tool calling.
+- **Text Channel (`gpt-4o`):** Standard HTTP POST to the backend, invoking the REST API.
+
+Both channels invoke the identical 8-tool vocabulary (same schema). Canvas state mutations are handled by the same Core Domain service, meaning the interaction modality is completely invisible to the graph logic.
 
 **WebSocket flow:**
 ```

@@ -16,13 +16,6 @@ Features that were designed but deferred from the 48-hour build. V1 completes th
 
 | Feature | Category | Notes |
 |---|---|---|
-| B4. Trust Lens Toggle | XAI | Full confidence topology implementation: node border sharpness, edge line style, cluster fill opacity |
-| B5. Counterfactual Branches | XAI | Full implementation with subgraph recompile and diff view showing changed nodes in amber |
-| B6. Reasoning Path Walk | XAI | Step-through guided mode with per-step trust rating; feedback stored and used to adjust future prompt weighting |
-| A5. Memory Freshness Indicators | Memory | Age badges and staleness flags; computed at canvas load, not continuously |
-| C3. Thinking Timeline | Canvas | Full implementation with Delta View (side-by-side diff between two keyframes) |
-| C7. Quick Override | Canvas | Per-cluster reasoning mode override; badge visible on cluster label |
-| D3. Activity Log | Governance | Read-only overlay of all canvas operations with timestamps |
 | A3. Memory Panel (relational graph view) | Memory | Visual graph view of memory items and their relationships (V1 upgrade from flat list) |
 | B9. Epistemic Health Check | XAI | Automated check before Decision node commit: surfaces unresolved assumptions and contradictions |
 | Cognitive Load Monitor | Canvas | Canvas entropy detection; Collapse suggestion when node density is high but structure is low |
