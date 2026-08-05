@@ -107,7 +107,7 @@ All of the following must have JSON fixtures created before the demo:
 | "How is this different from ChatGPT memory?" | ChatGPT memory is opaque and retroactive. Kleos memory is tiered, visible, and negotiated before storage. Tier 2 items are quarantined from all LLM context until the user explicitly accepts them. | prd.md — A1, A2 |
 | "Why target both PS01 and PS06?" | They share infrastructure. The memory system gives the XAI system something to explain. The XAI system gives the memory system a reason to be trusted. Provenance Badges serve both simultaneously. | context.md |
 | "What novel AI techniques are you using?" | None — intentionally. The innovation is the HCI layer. All AI capability is standard tool-calling, structured output, and streaming on GPT-4o. The research contribution is the interaction design. | architecture.md |
-| "What is the path to production?" | See future-plans.md: V1 (1–3 months) adds Trust Lens, Counterfactual Branches, Voice, collaborative canvases. V2 (3–9 months) adds enterprise integrations and production-grade memory backend (Neo4j + Pinecone). |  future-plans.md |
+| "What is the path to production?" | This hackathon build delivers the full PS01+PS06 interaction system. V1 (1–3 months) upgrades the memory panel to a relational graph view, adds semantic vector retrieval (text-embedding-3-small), CSV/XLSX inputs, and an Epistemic Health Check before Decision commits. V2 (3–9 months) adds multi-user collaborative canvases, enterprise integrations (Slack, Google Drive, GitHub, Jira), organization-wide shared memory with permission tiers, and dynamic URL ingestion. See future-plans.md. | future-plans.md |
 
 ---
 

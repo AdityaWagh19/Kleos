@@ -77,8 +77,11 @@ Active only when Trust Lens is toggled on. Off by default — always-on visual c
 | AI Inference | Yellow | Derived from current canvas context |
 | Parametric | Red | AI parametric knowledge — no document source. Primary hallucination-risk signal. |
 | User-Created | White/outline | Created directly by the user |
+| Voice Input | Citrine/Lime (`#e5ff5d` stroke, dark fill) | Created via voice command through the Realtime API. The idea originated with the user, delivered by voice — distinct from AI Inference. |
 
 The red Parametric badge is the most important trust signal in the system. Users who can immediately identify AI parametric claims can apply appropriate skepticism without any additional UI.
+
+The lime Voice Input badge signals user-originated voice content at a glance, reinforcing voice as a first-class input channel (P7: provenance is permanent).
 
 ---
 
@@ -103,13 +106,19 @@ Each of the 8 node types has a distinct visual treatment to be designed consiste
 
 ### Status Pill
 
-Located in the canvas header, right of the mode indicator. Three states:
+Located in the canvas header, right of the mode indicator. **Three states:**
 
-- `Working...` — animated blue dot. Active AI processing (text compilation path).
-- `Listening` — animated microphone icon. Voice channel active; mic is capturing.
-- `Ready` — static green dot. Idle.
+| State | Visual | Trigger |
+|---|---|---|
+| `Working...` | Animated blue dot | AI compilation active (text or voice command being processed) |
+| `Listening` | Animated microphone icon (`#e5ff5d`) | Voice channel connected; mic is capturing audio; no compilation in flight |
+| `Ready` | Static green dot | Idle — no compilation, voice not capturing |
 
-Clicking "Working..." shows the last 3 Reasoning Ribbon steps as a compact tooltip. Does not pause or interrupt compilation.
+State transitions: `Ready` → `Listening` (mic activated) → `Working...` (voice command received and being compiled) → `Ready`. Text path: `Ready` → `Working...` → `Ready`.
+
+Clicking `Working...` shows the last 3 Reasoning Ribbon steps as a compact tooltip. Does not pause or interrupt compilation.
+
+These are **mutually exclusive display states** — the pill shows exactly one state at all times. When a voice command triggers compilation, the pill transitions from `Listening` to `Working...`.
 
 ### Reasoning Ribbon
 
@@ -179,12 +188,13 @@ Mode name is always visible in the canvas header. Switching shows a one-line des
 
 **Returning user:** Canvas opens directly with the last active mode restored. Mode Selector is not shown again.
 
-**Empty canvas suggestion chips:**
-- "Drop your documents here"
-- "Type an idea"
-- "Describe what you're deciding"
+**Empty canvas suggestion chips (4 chips):**
+- "Drop your documents here" → activates the drop zone; user drags a file onto the canvas
+- "Say something" → pulses the microphone icon and activates the voice channel
+- "Type an idea" → focuses the text input bar below the canvas for direct text entry
+- "Describe what you're deciding" → focuses the text input bar with placeholder: "What decision are you working through?"
 
-These disappear as soon as the first node is added.
+All four chips disappear as soon as the first node is added. The "Say something" chip is the primary onboarding nudge for voice — judges and first-time users should see it immediately.
 
 ---
 

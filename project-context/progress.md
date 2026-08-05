@@ -11,14 +11,14 @@
 |---|---|---|
 | Hours 0–3: Foundation | Not started | |
 | Hours 3–6: Core AI Integration | Not started | |
-| Hours 6–10: Reasoning Ribbon + Contradiction | Not started | |
-| Hours 10–14: Memory System | Not started | |
-| Hours 14–18: Session Audit + Workspace Modes | Not started | |
+| Hours 6–10: Reasoning Ribbon and Contradiction | Not started | |
+| Hours 10–14: Voice Channel | Not started | |
+| Hours 14–18: Memory System | Not started | |
 | Hours 18–22: Branch, Compare, Incognito, Controls | Not started | |
-| Hours 22–26: Export + Ingestion | Not started | |
+| Hours 22–26: Export and Ingestion | Not started | |
 | Hours 26–32: Demo Preparation | Not started | |
-| Hours 32–40: Polish + Hardening | Not started | |
-| Hours 40–48: Buffer + Final Recording | Not started | |
+| Hours 32–42: Polish and Hardening | Not started | |
+| Hours 42–48: Buffer and Final Recording | Not started | |
 
 ---
 

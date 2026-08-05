@@ -89,7 +89,7 @@ Knowledge workers whose primary work product is a **decision or a recommendation
 
 1. User arrives at Kleos. Mode Selector is the first screen: "What kind of thinking are you doing today?" — four modes with one-line descriptions.
 2. Canvas opens with selected mode active and visible in the header. Status Pill shows "Ready."
-3. Suggestion chips appear on empty canvas: "Drop your documents here," "Type an idea," "Describe what you're deciding."
+3. Four suggestion chips appear on empty canvas: "Drop your documents here," "Say something," "Type an idea," "Describe what you're deciding." The "Say something" chip activates the voice channel — it is the primary onboarding nudge for the primary input channel.
 4. User drops a PDF. Status Pill switches to "Working..." Reasoning Ribbon narrates compilation. Nodes appear with Provenance Badges. Status Pill returns to "Ready."
 5. An Incognito toggle in the header allows opting out before any memories are stored.
 

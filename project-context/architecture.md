@@ -288,29 +288,52 @@ Used by: Rewind verb, Thinking Timeline, Activity Log overlay.
 ```sql
 CREATE TABLE memories (
   id          TEXT PRIMARY KEY,
-  tier        INTEGER NOT NULL,   -- 0: Core, 1: Session, 2: Inferred, 3: Source
+  tier        INTEGER NOT NULL,   -- 0: Core, 1: Session/Workspace, 2: Inferred, 3: Source
+  scope       TEXT NOT NULL DEFAULT 'session',
+                                  -- 'global'    → Tier 0 (Core, permanent, all sessions)
+                                  -- 'workspace' → Tier 1 (persists across sessions for this canvas/project)
+                                  -- 'session'   → Tier 1 (expires when canvas closes)
+                                  -- 'source'    → Tier 3 (tied to a dropped artifact)
   text        TEXT NOT NULL,
   provenance  JSONB,              -- {session_id, artifact_id, trigger, input_modality}
-  canvas_id   TEXT,               -- NULL for Tier 0 (global)
+  canvas_id   TEXT,               -- NULL for Tier 0 (global scope)
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   last_used   TIMESTAMPTZ,
-  quarantined BOOLEAN DEFAULT FALSE,  -- TRUE if Tier 2 and not yet ratified
-  archived    BOOLEAN DEFAULT FALSE
+  quarantined BOOLEAN DEFAULT FALSE,  -- TRUE if Tier 2 and not yet ratified; excluded from all LLM context
+  archived    BOOLEAN DEFAULT FALSE,  -- Soft-delete for manually archived items
+  rejected    BOOLEAN DEFAULT FALSE   -- Soft-delete for items rejected during Memory Negotiation Card
+                                      -- or Session Memory Audit. Excluded from LLM context forever
+                                      -- but retained in DB for PS06 export auditability.
 );
 ```
+
+### Scope → Tier Mapping
+
+The `scope` field and the Memory Negotiation Card options map to tiers as follows:
+
+| Negotiation Card Option | Inline Scope Chip | Tier | scope value | Lifecycle |
+|---|---|---|---|---|
+| Remember Always | [Global] | Tier 0 | `'global'` | Permanent; survives all sessions |
+| This Project Only | [Workspace] | Tier 1 | `'workspace'` | Persists across sessions for this canvas/project; survives canvas close |
+| (Session default) | [Session] | Tier 1 | `'session'` | Expires when canvas closes |
+| Don't Remember | — | — | (deleted) | Immediately hard-deleted |
+| Not Now | — | Tier 2 | `'session'` | Stays quarantined pending future ratification |
 
 ### Context Assembly Priority Order
 
 At prompt construction time, context is assembled in this order:
 
 1. Workspace Mode system prompt (configures reasoning posture and memory weighting)
-2. Tier 0 (Core) — all active core memories, filtered by domain relevance
-3. Tier 1 (Session) — all session memories for the current canvas (truncated to most recent 10 if many)
-4. Tier 3 (Source) — relevant source memories (at demo scale: all; at V1 scale: top-N by Redis vector search)
-5. Tier 2 (Inferred) — **NEVER included until explicitly accepted by user**
-6. Canvas state snapshot — current subgraph serialized as structured JSON
+2. Tier 0 (Core, `scope='global'`) — all active core memories, filtered by domain relevance
+3. Tier 1 (Workspace, `scope='workspace'`) — all workspace-scoped memories for this canvas/project
+4. Tier 1 (Session, `scope='session'`) — session memories for the current canvas (truncated to most recent 10 if many)
+5. Tier 3 (Source, `scope='source'`) — relevant source memories (at demo scale: all; at V1 scale: top-N by Redis vector search)
+6. Tier 2 (Inferred) — **NEVER included until explicitly accepted by user, regardless of quarantine status**
+7. Canvas state snapshot — current subgraph serialized as structured JSON
 
 **Tier 2 quarantine is the foundational PS06 commitment.** Inferred memories exist in the database but are excluded from all LLM context assembly until ratified. This must be enforced at the database query layer, not assumed in application logic.
+
+**Rejected memories are excluded forever.** Items rejected during the Memory Negotiation Card or Session Memory Audit are soft-deleted (`rejected=TRUE`). They are never included in LLM context but are retained in the database for PS06 export auditability (the export shows the full consent ledger including rejections).
 
 ---
 
@@ -398,13 +421,33 @@ To be filled in as routes are implemented during the build.
 - No AI action that cannot be undone or traced.
 - Voice and text paths must produce identical canvas mutations. Input modality is invisible to the canvas service.
 
+### CORS Configuration (Required — Day 0)
+
+The FastAPI backend runs at `localhost:8000` (production: your EC2 domain); the frontend runs at `localhost:5173` (production: your domain). CORS middleware is **required** for all HTTP requests. Configure in `main.py`:
+
+```python
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Add production URL here
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
+
+For production, replace `"http://localhost:5173"` with the deployed frontend URL. WebSocket (`/ws/voice`) is not subject to CORS — it uses the WebSocket handshake protocol which has its own origin enforcement.
+
+---
+
 ### Error Handling Requirements
 
 | Failure | Behavior |
 |---|---|
 | LLM API failure (text path) | Inline error on affected node/cluster: "Compilation failed — [Retry]." Canvas state preserved. |
 | Realtime API WebSocket disconnect | Auto-reconnect with exponential backoff. Show "Voice reconnecting..." in the Status Pill. |
-| ChromaDB / Redis unavailable | Fall back to keyword search for memory retrieval. Log the fallback. |
+| Redis unavailable | Fall back to in-memory keyword search for memory retrieval. Log the fallback. Show degraded-mode banner. |
 | PDF parse failure | Error on Source node: "Could not parse this file. Try a different format." |
 | URL fetch failure | "Could not reach this URL. Paste the content manually instead." Text input fallback offered. |
 | File too large | "File too large. Maximum is [X]MB for [type]. Try splitting the document." |

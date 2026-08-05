@@ -77,17 +77,31 @@ Kleos/
 
 ## Supabase Setup
 
+**Two separate directories are involved — do not confuse them:**
+
+| Directory | Purpose |
+|---|---|
+| `supabase/migrations/` (repo root) | Created by the Supabase CLI. Contains versioned SQL migration files. This is what `supabase db push` reads. |
+| `src/backend/db/` | Python application code — Supabase client wrapper (`supabase.py`), query helpers. Not SQL migration files. |
+
+Write all `CREATE TABLE` SQL into `supabase/migrations/`. Never put raw SQL in `src/backend/db/`.
+
 ```bash
 # Install the Supabase CLI
 npm install -g supabase
 
-# Initialise (from repo root)
+# Initialise (from repo root — creates supabase/ directory)
 supabase init
 
 # Link to your Supabase project
 supabase link --project-ref <your-project-ref>
 
-# Run schema migrations
+# Create your first migration file
+supabase migration new initial_schema
+# This creates: supabase/migrations/<timestamp>_initial_schema.sql
+# Write all CREATE TABLE statements into that file.
+
+# Push migrations to Supabase
 supabase db push
 ```
 
@@ -95,7 +109,7 @@ Migrations must create:
 - `canvases` table
 - `nodes` table (with `impact_nodes` as JSONB array, `provenance_detail` as JSONB)
 - `edges` table
-- `memories` table (with `quarantined` and `archived` boolean fields)
+- `memories` table (with `tier`, `scope`, `quarantined`, `archived`, `rejected` fields — see architecture.md for full schema)
 - `events` table (event log)
 - `branches` table
 
@@ -125,6 +139,26 @@ client = redis.Redis(
 ```
 
 Redis Cloud (Redis Stack) includes RedisVSS for vector search. No separate vector database is required.
+
+---
+
+## CORS Setup (Required — Do This First)
+
+The frontend (`localhost:5173`) and backend (`localhost:8000`) are on different origins. CORS middleware **must** be configured before any frontend API calls will work.
+
+Add to `src/backend/main.py` immediately after `app = FastAPI(...)`:
+
+```python
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Add production URL before deployment
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
 
 ---
 
@@ -201,6 +235,8 @@ python-multipart
 sse-starlette
 python-dotenv
 pyppeteer
+pdfkit         # PDF export fallback — used if Chromium/pyppeteer fails on EC2
+               # Also requires: sudo apt-get install -y wkhtmltopdf (on EC2)
 ```
 
 **Removed:** `chromadb`, `SQLAlchemy` (replaced by Supabase client), `sarvam` (replaced by OpenAI Realtime API)

@@ -36,9 +36,9 @@ Collaborative and enterprise capabilities. Requires production-grade infrastruct
 | Enterprise integrations | Slack, Google Drive, GitHub, Jira as Drop sources; OAuth-based connection management |
 | URL ingestion (dynamic) | Playwright headless browser for SPAs and JavaScript-rendered pages (V1 supports static pages only via requests + BeautifulSoup) |
 | Organization memory | Organization-wide shared Core Memory with permission tiers (read-only vs. editable for different user roles) |
-| Advanced memory backend | Production-grade hybrid: Neo4j AuraDB (graph relationships) + Pinecone (vector similarity); replaces SQLite + ChromaDB local |
+| Advanced memory backend | Production-grade hybrid: Neo4j AuraDB (graph relationships) + Pinecone (vector similarity); augments the Supabase PostgreSQL + Redis Cloud stack used in V1 |
 | Multi-timescale memory | Memory decay curves visible to users; automatic demotion of unused Core Memories to Session tier after configurable period |
-| Video transcript input | Sarvam AI Whisper-compatible STT for meeting recordings and lecture notes |
+| Video transcript input | Whisper-compatible STT service for meeting recordings and lecture notes |
 
 ---
 

@@ -44,7 +44,7 @@
 | B1. Reasoning Ribbon | The most dramatic PS01 moment — watching the AI think |
 | B2. Assumption Audit Panel (with Impact Halo) | The core PS01 interaction — override an assumption, watch the canvas change |
 | B3. Provenance Badges (5 types + voice_input) | Minimum source attribution on every node |
-| B4. Trust Lens Toggle | Confidence topology overlay (restored for 4-person team) |
+| B4. Trust Lens Toggle | Confidence topology overlay (restored for 4-person team) — **scheduled in buffer hours (42–48); implement only if all other MVP features are stable and tested** |
 | B5. Counterfactual Branches | "What if I remove this?" subgraph recompilation (restored for 4-person team) |
 | B6. Reasoning Path Walk | Step-through guided mode (restored for 4-person team) |
 | B7. Contradiction Flag (basic: red edge + hover text) | PS01 requires visible contradictions |
@@ -84,7 +84,7 @@
 | 3–6 | BE1/2 | GPT-4o integration, DB schemas (events, memory), WebSocket proxy skeleton. |
 | 3–6 | FE1/2 | Node rendering, Trust Lens overlay stub, Reasoning Ribbon UI. |
 | 6–10 | BE1/2 | Reasoning Ribbon SSE; Contradiction detection; Activity Log and Timeline API. |
-| 6–10 | FE1/2 | Activity Log overlay, Thinking Timeline UI, Assumption Audit panel. |
+| 6–10 | FE1/2 | Activity Log overlay, Thinking Timeline UI, Assumption Audit panel (right-side drawer with confidence bars, source badges, Impact Halo stub — Impact Halo wired in at Hours 10–14 after BE `impact_nodes` are live). |
 | 10–14 | BE1/2 | Realtime API WebSocket integration; Voice/Chat multiplexing; Counterfactual subgraph recompile. |
 | 10–14 | FE1/2 | Mic capture + text chat input bar; Status Pill (Listening/Working/Ready); Impact Halo. |
 | 14–18 | BE1/2 | Memory tiers, Session Audit flow, Freshness calculations, Quick Override data model. |

@@ -63,12 +63,23 @@ All AI capability is orchestrated through standard tool-calling, structured outp
 
 ### Four-Tier Memory Architecture
 
-| Tier | Name | Lifecycle | Visual |
-|---|---|---|---|
-| Tier 0 | Core Memory | Permanent, user-ratified | Solid gold border |
-| Tier 1 | Session Memory | Expires when canvas closes | Dashed blue border |
-| Tier 2 | Inferred Memory | AI-proposed; awaiting ratification | Amber border, quarantine badge |
-| Tier 3 | Source Memory | Tied to a dropped artifact | Paperclip icon |
+| Tier | Name | Scope | Lifecycle | Visual |
+|---|---|---|---|---|
+| Tier 0 | Core Memory | `global` | Permanent, user-ratified | Solid gold border |
+| Tier 1 | Workspace Memory | `workspace` | Persists across sessions for this project | Solid blue border |
+| Tier 1 | Session Memory | `session` | Expires when canvas closes | Dashed blue border |
+| Tier 2 | Inferred Memory | `session` | AI-proposed; awaiting ratification | Amber border, quarantine badge |
+| Tier 3 | Source Memory | `source` | Tied to a dropped artifact | Paperclip icon |
+
+**Scope ↔ Negotiation Card mapping:**
+
+| Card Option | Inline Chip | Tier | Scope | Lifecycle |
+|---|---|---|---|---|
+| Remember Always | [Global] | 0 | `global` | Permanent |
+| This Project Only | [Workspace] | 1 | `workspace` | Persists for this project across sessions |
+| *(default session node)* | [Session] | 1 | `session` | Expires on canvas close |
+| Don't Remember | — | — | — | Hard-deleted immediately |
+| Not Now | — | 2 | `session` | Stays quarantined |
 
 **Critical constraint:** Tier 2 (Inferred) memories are never included in LLM prompt construction until the user explicitly accepts them. They exist in the database but are quarantined from context assembly. This is the foundational PS06 commitment.
 
@@ -95,7 +106,7 @@ Keyboard shortcuts: `B` = Branch, `M` = Merge, `C` = Compare, `T` = Trace, `P` =
 
 `idea` `evidence` `assumption` `question` `constraint` `insight` `decision` `source`
 
-### Epistemic Source Types (5 Provenance Badges)
+### Epistemic Source Types (6 Provenance Badges)
 
 | Badge | Color | Meaning |
 |---|---|---|
@@ -104,6 +115,7 @@ Keyboard shortcuts: `B` = Branch, `M` = Merge, `C` = Compare, `T` = Trace, `P` =
 | AI Inference | Yellow | Derived from current canvas context |
 | Parametric | Red | AI parametric knowledge — no document source; hallucination-risk signal |
 | User-Created | White/outline | Created directly by the user |
+| Voice Input | Citrine/Lime | Created via voice command through the Realtime API — distinct from AI inference; the idea originated with the user, delivered by voice |
 
 ---
 
@@ -124,7 +136,7 @@ Left-side slide-out panel. Four-tab view: Core | Session | Pending (Tier 2) | So
 Create, Read, Update, Archive on all memory items. Editing a memory shows a one-second Impact Pulse on canvas nodes influenced by it. Archive is soft-delete (retained for audit). Permanent delete requires secondary confirmation.
 
 **A6. Session Memory Audit** | PS06 | MVP
-At canvas close, a Session Summary Card lists everything the AI inferred during the session with per-item Accept / Reject / Edit controls. Accepted items promoted to Tier 0 or Tier 1. Rejected items permanently discarded.
+At canvas close, a Session Summary Card lists everything the AI inferred during the session with per-item Accept / Reject / Edit controls. Accepted items promoted to Tier 0 or Tier 1 (scope determined by the user's choice). Rejected items are **soft-deleted** (`rejected=TRUE`): they are excluded from all future LLM context permanently but are retained in the database for PS06 export auditability — the export includes a full consent ledger showing which inferences were accepted and which were rejected.
 
 **A7. Inline Scope Chips** | PS06, PS01 | MVP
 Nodes carrying user-relevant content carry an inline chip: [Session] | [Workspace] | [Global]. Clicking cycles through options. Scope change to Global pulses all open branches in the Branch Rail.
@@ -161,7 +173,12 @@ Activating Trace on any node dims the canvas to show only the reasoning chain. B
 react-flow spatial canvas with infinite pan/zoom, momentum physics, multi-level zoom (branch overview → cluster → node detail), direct manipulation, AI-driven auto-layout with user override, Branch Rail (persistent strip showing active branches as tabs).
 
 **C2. Status Pill** | PS01 (secondary) | MVP
-Two-state indicator in the canvas header: "Working..." (animated blue dot) / "Ready" (static green dot). Clicking "Working..." shows the last 3 Reasoning Ribbon steps as a compact tooltip. Does not pause compilation — that is handled by dedicated Pause/Stop controls (D2).
+Three-state indicator in the canvas header:
+- `Working...` — animated blue dot; active AI compilation (text path).
+- `Listening` — animated microphone icon; voice channel active and capturing.
+- `Ready` — static green dot; idle.
+
+Clicking "Working..." shows the last 3 Reasoning Ribbon steps as a compact tooltip. Does not pause compilation — that is handled by dedicated Pause/Stop controls (D2). The `Listening` state is independent of compilation: voice can be active while the canvas is `Ready` (listening, not yet processing) or while `Working...` (voice command being compiled).
 
 **C3. Thinking Timeline** | PS01, PS06 | Differentiator
 Toggle-only horizontal scrubber. Keyframe thumbnails at major milestones. Never permanently visible (consumes 15–20% of canvas vertical space with minimal benefit during active work).
@@ -197,7 +214,7 @@ Read-only overlay listing all canvas operations with timestamps. Every action lo
 | Decision Summary | Problem Statement, Assumptions, Evidence, Decisions | Stakeholder sharing |
 | Research Notes | Evidence, Open Questions, Reasoning Summary, Memory Context | Academic / synthesis |
 
-PDF generation: marked.js (render) + puppeteer (PDF). Fallback: pdfkit if Chromium unavailable. Generation time: 2–6 seconds. Show a loading state.
+PDF generation: marked.js (render) + pyppeteer (Python headless Chromium, run as a Celery task). Fallback: pdfkit if Chromium is unavailable on the EC2 instance. Generation time: 2–6 seconds. Show a loading state.
 
 ### Supported Inputs
 

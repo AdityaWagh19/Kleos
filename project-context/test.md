@@ -21,7 +21,7 @@ Run each section end-to-end in the order listed. Mark [ ] → [x] when verified.
 | Pan and zoom | Smooth pan with click-drag; smooth zoom with scroll wheel | |
 | Mode Selector (first use) | Full-screen mode selector appears on fresh load; disappears after mode selection | |
 | Active mode indicator | Selected mode name visible in canvas header after mode selection | |
-| Suggestion chips (empty canvas) | "Drop your documents here," "Type an idea," "Describe what you're deciding" appear on empty canvas | |
+| Suggestion chips (empty canvas) | All 4 chips appear: "Drop your documents here," "Say something," "Type an idea," "Describe what you're deciding" | |
 | Suggestion chips disappear | Chips disappear when first node is added | |
 | Empty state: Assumption Audit Panel | "No assumptions detected yet. Drop content to begin." shown when panel is open with no content | |
 | Empty state: Memory Panel | "No memories stored yet. Kleos will only remember what you approve." shown on fresh Memory Panel | |
@@ -40,7 +40,7 @@ Run each section end-to-end in the order listed. Mark [ ] → [x] when verified.
 | Reasoning Ribbon fades | Ribbon fades 2 seconds after compilation completes | |
 | Uncertainty surfaced | If AI cannot classify a node type, ribbon shows: "Could not determine if this is a constraint or assumption — treating as assumption. Click to change." | |
 | Status Pill click (during compilation) | Clicking "Working..." shows last 3 ribbon steps as tooltip; does NOT pause compilation | |
-| Provenance badges | Every node has a badge; badge color matches source type (blue=document, green=core memory, yellow=AI inference, red=parametric, white=user-created) | |
+| Provenance badges | Every node has a badge; badge color matches source type (blue=document, green=core memory, yellow=AI inference, red=parametric, white=user-created, lime=voice input) — 6 types total | |
 | Badge hover | Hovering a badge shows full provenance chain in tooltip | |
 | Source Filter | Toolbar Source Filter icon dims all nodes except selected source type | |
 | Contradiction flag | When two contradicting nodes are created: both pulse red for 1 second → red edge persists → hover shows explanation | |
@@ -214,7 +214,129 @@ Run each section end-to-end in the order listed. Mark [ ] → [x] when verified.
 | Memory Panel load | < 300ms | | |
 | Branch comparison render | < 1s | | |
 | PDF export time | < 8s | | |
-| ChromaDB query latency | < 30ms | | |
+| Redis query latency | < 30ms | | |
+
+---
+
+## Section 16: Status Pill — Listening State (Voice)
+
+| Test | Pass Criteria | Status |
+|---|---|---|
+| Listening state activates | Activating the microphone switches Status Pill to animated lime mic icon (Listening state) | |
+| Listening → Working transition | Issuing a voice command transitions pill from Listening to Working... (animated blue dot) | |
+| Working → Ready transition | After voice command is compiled and canvas updates, pill returns to Ready (static green dot) | |
+| Three states are mutually exclusive | Only one state is visible at a time; no overlap | |
+
+---
+
+## Section 17: Voice Input — C5 (Primary Input Channel)
+
+| Test | Pass Criteria | Status |
+|---|---|---|
+| Microphone permission prompt | First mic activation shows browser permission prompt; granting it connects the voice channel | |
+| Voice active indicator | After permission granted, microphone icon animates in Status Pill area | |
+| Voice transcript display | Real-time transcript of spoken words appears below the canvas as the user speaks | |
+| "Create a node" command | Say "Create a node called [X]" → `create_node` tool call fires → node appears on canvas with Voice Input (lime) badge | |
+| Voice badge on node | Node created by voice has `provenance_type: voice_input` and displays the lime Voice Input badge | |
+| All 12 verbs via voice | Each verb (Drop, Pin, Merge, Split, Branch, Collapse, Commit, Rewind, Compare, Trace, Counterfactual, Anchor) is addressable by voice and produces the correct tool call | |
+| Voice and text mutations identical | A node created by voice and the same node created by text are visually and data-model identical (except `input_modality` field) | |
+| Voice WebSocket disconnect | Killing the WebSocket → Status Pill shows "Voice reconnecting..." → auto-reconnects with exponential backoff | |
+| Microphone denied | Denying mic permission → clear guidance message → voice chip remains available to retry | |
+
+---
+
+## Section 18: Memory Freshness Indicators — A5
+
+| Test | Pass Criteria | Status |
+|---|---|---|
+| Age badge visible | Each memory item in the Memory Panel shows a relative age badge (e.g., "3 days ago") | |
+| Age computed at canvas load | Age badges reflect the time since creation; they do not tick in real time during the session | |
+| Staleness flag | A memory item that appears to contradict current canvas content shows a staleness flag (amber indicator) | |
+| Staleness flag on fresh open | Staleness is computed at canvas load — flags are visible immediately on open if contradictions exist; they do not appear mid-session as nodes change | |
+| No staleness flag without contradiction | A memory that does not contradict any canvas node shows no staleness flag | |
+
+---
+
+## Section 19: Trust Lens Toggle — B4
+
+| Test | Pass Criteria | Status |
+|---|---|---|
+| Toggle accessible | Trust Lens toggle button is visible in the canvas toolbar | |
+| Trust Lens off by default | On canvas load, Trust Lens is off; no confidence encoding on nodes or edges | |
+| Trust Lens on — border sharpness | Activating Trust Lens: high-confidence nodes show crisp borders; low-confidence nodes show feathered/blurred borders | |
+| Trust Lens on — cluster opacity | Cluster backgrounds reflect average member confidence: high-confidence clusters are opaque; uncertain clusters appear translucent | |
+| Trust Lens off — revert | Deactivating Trust Lens returns all borders and cluster fills to their default visual state | |
+| Toggle state not persisted | Closing and reopening the canvas always loads with Trust Lens off | |
+
+---
+
+## Section 20: Counterfactual Branches — B5
+
+| Test | Pass Criteria | Status |
+|---|---|---|
+| Context menu option | Right-clicking an Assumption node shows "What changes if I remove this?" option | |
+| Branch created | Selecting the option creates a new Branch in the Branch Rail | |
+| Assumption deleted in branch | The assumption node is absent in the counterfactual branch | |
+| Partial recompilation only | Only nodes with the assumption in their `impact_nodes` array are recomputed; unrelated nodes are unchanged | |
+| Changed nodes highlighted | Nodes that changed as a result of removing the assumption are highlighted in amber | |
+| Impact summary shown | A plain-language summary panel appears: "Removing this assumption changed X nodes: [list]" | |
+| Original branch unchanged | Switching back to the original branch shows the assumption still present | |
+
+---
+
+## Section 21: Reasoning Path Walk — B6
+
+| Test | Pass Criteria | Status |
+|---|---|---|
+| Trace activation | Right-clicking any node → Trace, or pressing keyboard `T`, activates the Reasoning Walk | |
+| Canvas dims | Non-reasoning-chain nodes dim to near-invisible; only the chain nodes remain fully visible | |
+| Step-through narration | Bottom card narrates each reasoning step in plain language; user can step forward and back | |
+| Correct chain | The nodes shown are exactly those in the reasoning chain for the selected node, not all nodes | |
+| Feedback prompt at end | After the final step: "Did this reasoning make sense?" — Yes / No controls visible | |
+| Feedback stored | User's response is logged in the Event Log for future prompt weighting | |
+| Exit Walk | Pressing Esc or clicking outside the panel exits Reasoning Walk; canvas returns to normal state | |
+
+---
+
+## Section 22: Thinking Timeline — C3
+
+| Test | Pass Criteria | Status |
+|---|---|---|
+| Timeline hidden by default | Thinking Timeline is not visible on canvas load; it does not consume vertical space | |
+| Toggle reveals timeline | Clicking the Timeline toggle shows the horizontal scrubber at the bottom (above the Reasoning Ribbon area) | |
+| Keyframe thumbnails | Major milestones (first drop, first branch, mode switch, first memory accept) are visible as keyframe thumbnails | |
+| Keyframe label | Each keyframe thumbnail shows a short label (e.g., "PDF dropped", "Branch created") | |
+| Rewind to keyframe | Clicking a keyframe restores the canvas to the state at that point (Rewind verb) | |
+| Current position indicator | A position marker shows where in the timeline the canvas currently is | |
+| Toggle hides timeline | Clicking the toggle again hides the timeline and restores the canvas vertical space | |
+
+---
+
+## Section 23: Quick Override — C7
+
+| Test | Pass Criteria | Status |
+|---|---|---|
+| Context menu available | Right-clicking any cluster shows "Override mode for this cluster" option | |
+| Override mode selector | Selecting the option shows all 4 modes (Analytical / Creative / Critical / Strategic) | |
+| Override applied | After selection, the cluster shows a small colored badge in its label indicating the local override mode | |
+| Override reasoning effect | AI reasoning for nodes within the cluster uses the override mode, not the global mode | |
+| Global mode unchanged | Other clusters and the canvas header still show and use the global mode | |
+| Override does not affect memory | Memory writes during the override session follow the global memory settings, not the override mode | |
+| Override expires at session end | Closing and reopening the canvas shows no cluster with an active override badge | |
+
+---
+
+## Section 24: Activity Log — D3
+
+| Test | Pass Criteria | Status |
+|---|---|---|
+| Activity Log toggle | Activity Log overlay toggle is accessible in the canvas toolbar | |
+| All operations logged | After a series of actions (drop, branch, memory accept, mode switch), all appear in the Activity Log with timestamps | |
+| Author attribution | Each entry shows `User` or `AI` as the author | |
+| Input modality shown | Each entry shows the input modality (`text`, `voice`, `drop`) | |
+| Read-only | The Activity Log overlay has no edit controls — it is a read-only audit trail | |
+| Log persists in session | Entries added earlier in the session are still visible when the log is reopened | |
+| Voice events logged | Voice commands appear in the log with `input_modality: voice` | |
 
 ---
 

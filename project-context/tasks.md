@@ -54,9 +54,10 @@
 
 ### Frontend
 - [ ] Reasoning Ribbon component: bottom strip, SSE consumer, step-by-step display, fade after 2s
-- [ ] Status Pill component: 2-state (Working... / Ready), tooltip on click showing last 3 ribbon steps
+- [ ] Status Pill component: 3-state (Working... / Listening / Ready). Working=animated blue dot; Listening=animated lime mic icon; Ready=static green dot. Clicking Working... shows last 3 ribbon steps as tooltip.
 - [ ] Contradiction Flag: red edge with lightning symbol, hover text showing explanation
 - [ ] Per-element micro-interactions: node glow on "awaiting decision," red border on error
+- [ ] Assumption Audit Panel: right-side drawer, list of assumptions with confidence bar (Low/Medium/High), source badge per assumption, Accept / Override / Ask AI to reconsider / Delete actions
 
 ---
 
@@ -80,7 +81,6 @@
 - [ ] Voice active indicator: microphone icon in Status Pill area; animates while listening
 - [ ] Voice reconnect handling: auto-reconnect on WebSocket close with status update
 - [ ] Impact Halo: on assumption hover, pulse all nodes in impact_nodes array amber simultaneously (target: < 100ms)
-- [ ] Assumption Audit Panel: right-side drawer, list of assumptions with confidence bar, source badge, actions
 
 ---
 
