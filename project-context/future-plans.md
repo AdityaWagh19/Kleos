@@ -1,0 +1,131 @@
+# Future Plans
+
+**Kleos** — Post-Hackathon Roadmap and Research Agenda
+
+---
+
+## Hackathon Deliverable (Current Scope)
+
+The hackathon build delivers the PS01 and PS06 MVP: a working spatial canvas with real-time AI reasoning transparency, four-tier negotiated memory, and a scripted 7-minute demo. Features deferred from the hackathon scope are the starting point for V1.
+
+---
+
+## Hackathon → V1 (1–3 Months Post-Hackathon)
+
+Features that were designed but deferred from the 48-hour build. V1 completes the full designed system.
+
+| Feature | Category | Notes |
+|---|---|---|
+| B4. Trust Lens Toggle | XAI | Full confidence topology implementation: node border sharpness, edge line style, cluster fill opacity |
+| B5. Counterfactual Branches | XAI | Full implementation with subgraph recompile and diff view showing changed nodes in amber |
+| B6. Reasoning Path Walk | XAI | Step-through guided mode with per-step trust rating; feedback stored and used to adjust future prompt weighting |
+| A5. Memory Freshness Indicators | Memory | Age badges and staleness flags; computed at canvas load, not continuously |
+| C3. Thinking Timeline | Canvas | Full implementation with Delta View (side-by-side diff between two keyframes) |
+| C5. Voice Input | Canvas | Full Sarvam AI STT integration; all 12 verbs voice-addressable in Indian languages |
+| C7. Quick Override | Canvas | Per-cluster reasoning mode override; badge visible on cluster label |
+| D3. Activity Log | Governance | Read-only overlay of all canvas operations with timestamps |
+| A3. Memory Panel (relational graph view) | Memory | Visual graph view of memory items and their relationships (V1 upgrade from flat list) |
+| B9. Epistemic Health Check | XAI | Automated check before Decision node commit: surfaces unresolved assumptions and contradictions |
+| Cognitive Load Monitor | Canvas | Canvas entropy detection; Collapse suggestion when node density is high but structure is low |
+| Custom Workspace Modes | Workspace | User-created modes extending the 4 defaults |
+| CSV / XLSX input | Ingestion | pandas + GPT-4o for pricing tables, data comparisons, research datasets |
+| PPTX input | Ingestion | python-pptx with GPT-4o Vision for slide images |
+
+---
+
+## V1 → V2 (3–9 Months)
+
+Collaborative and enterprise capabilities. Requires production-grade infrastructure.
+
+| Area | Features |
+|---|---|
+| Collaboration | Multi-user canvases with presence indicators, real-time sync, memory conflict resolution when two users hold contradicting memories |
+| Enterprise integrations | Slack, Google Drive, GitHub, Jira as Drop sources; OAuth-based connection management |
+| URL ingestion (dynamic) | Playwright headless browser for SPAs and JavaScript-rendered pages (V1 supports static pages only via requests + BeautifulSoup) |
+| Organization memory | Organization-wide shared Core Memory with permission tiers (read-only vs. editable for different user roles) |
+| Advanced memory backend | Production-grade hybrid: Neo4j AuraDB (graph relationships) + Pinecone (vector similarity); replaces SQLite + ChromaDB local |
+| Multi-timescale memory | Memory decay curves visible to users; automatic demotion of unused Core Memories to Session tier after configurable period |
+| Video transcript input | Sarvam AI Whisper-compatible STT for meeting recordings and lecture notes |
+
+---
+
+## V2 → V3 (9–18 Months)
+
+Research-grade and spatial computing extensions.
+
+| Area | Features |
+|---|---|
+| Proactive background agents | Agents that populate and maintain the canvas between sessions based on user calendars, email threads, and linked sources |
+| Formal evaluation study | CHI-style matched-task experiment: Kleos vs. chat for sensemaking tasks. N >= 12. Measuring: decision quality, cognitive load, trust calibration, exploration diversity. Target venue: CHI 2027 or UIST 2027. |
+| Spatial computing extensions | XR/AR canvas for physical-space reasoning; spatial anchoring of canvas nodes to physical locations |
+| Multi-agent simulation modes | Parallel expert perspectives as separate branch agents: one agent plays devil's advocate, one plays optimist, one plays conservative analyst |
+
+---
+
+## Research Directions (Publication-Worthy)
+
+Four study designs that emerge directly from Kleos's design decisions. Each is a gap in the current HCI literature.
+
+### Study 1: Canvas vs. Chat for Sensemaking
+
+**Research question:** Does a spatial semantic canvas produce better decisions than chat for complex sensemaking tasks?
+
+**Design:** Within-subjects experiment. Matched tasks (e.g., "evaluate three architectural options and make a recommendation") completed in both Kleos and a chat interface (ChatGPT). Counterbalanced order.
+
+**Measures:** Decision quality (independent evaluation panel), cognitive load (NASA-TLX), trust calibration (predicted vs. actual confidence), exploration diversity (number of distinct hypotheses considered).
+
+**Target venue:** CHI 2027
+
+---
+
+### Study 2: Workspace Mode Effectiveness
+
+**Research question:** Which Workspace Mode produces better outcomes for which task type?
+
+**Design:** Between-subjects or within-subjects study with the 4 modes. Task types: literature synthesis (Analytical), creative brainstorming (Creative), risk review (Critical), strategic synthesis (Strategic).
+
+**Measures:** Task-appropriate outcome quality, time on task, user-reported reasoning confidence, retrospective accuracy of AI assumption acceptance.
+
+**Target venue:** UIST 2027 or IUI 2027
+
+---
+
+### Study 3: Memory Negotiation Burden
+
+**Research question:** At what Memory Negotiation Card frequency does user fatigue exceed the trust benefit?
+
+**Design:** Longitudinal study over 5 sessions. Vary the Negotiation Card trigger threshold (low frequency: 1 per session, high frequency: 1 per 5 interactions). Measure: trust in AI memory, fatigue (retrospective survey), consent quality (how carefully users read the card before choosing).
+
+**Hypothesis:** There is an optimal trigger threshold between 1 and 3 cards per session where trust benefit peaks before fatigue increases.
+
+**Target venue:** CHI 2027
+
+---
+
+### Study 4: Quick Override Patterns
+
+**Research question:** Do users actually use per-cluster reasoning mode overrides, or does one global mode suffice for most tasks?
+
+**Design:** Observational study of Kleos usage logs from V1 users. Measure: Quick Override usage frequency, override mode selection patterns, session types where overrides cluster.
+
+**Hypothesis:** The majority of Quick Override usage occurs in Critical mode overrides within Analytical global mode sessions — users want to stress-test a single cluster without changing their global analytical posture.
+
+**Target venue:** CHI 2028 (requires V1 deployment data)
+
+---
+
+## Infrastructure Migration (Hackathon → Production)
+
+| Component | Hackathon | Production Target |
+|---|---|---|
+| Memory store | SQLite local | PostgreSQL + Redis (real-time) |
+| Vector store | ChromaDB local | Pinecone (managed) |
+| Graph relationships | JSON arrays in SQLite | Neo4j AuraDB |
+| LLM routing | OpenAI API direct | LiteLLM or similar with fallback routing |
+| Authentication | None | Auth0 or Clerk |
+| Deployment | Local laptop | Vercel (frontend) + Railway or Fly.io (backend) |
+| PDF export | puppeteer (local) | Browserless.io or similar headless cloud service |
+
+---
+
+*Reference: Kleos_Master_Document.md — Section 26*
