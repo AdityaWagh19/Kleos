@@ -9,7 +9,7 @@ def get_client() -> redis_lib.Redis:
     password = os.environ.get("REDIS_PASSWORD", "")
 
     # Parse host and port from REDIS_URL
-    # Expected format: redis://host:port or rediss://host:port
+    # Supports: redis://host:port  or  rediss://host:port
     url_without_scheme = redis_url.split("://", 1)[1]
     if ":" in url_without_scheme:
         host, port_str = url_without_scheme.rsplit(":", 1)
@@ -23,7 +23,9 @@ def get_client() -> redis_lib.Redis:
     return redis_lib.Redis(
         host=host,
         port=port,
+        username="default",      # Required for Redis 6+ ACL (Upstash uses this)
         password=password if password else None,
         ssl=use_ssl,
+        ssl_cert_reqs=None,      # Upstash uses self-signed cert in some regions
         decode_responses=True,
     )
