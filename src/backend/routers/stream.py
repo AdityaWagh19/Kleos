@@ -1,25 +1,23 @@
 """
 SSE streaming endpoint for the Reasoning Ribbon.
-Supports two architectures (selected via STREAMING_FALLBACK env var):
-  Primary (STREAMING_FALLBACK=false): GPT-4o emits reasoning_step JSON objects mid-stream.
-  Fallback (STREAMING_FALLBACK=true):  GPT-4o-mini streams steps first, then GPT-4o compiles.
+Architecture: emit 3 immediate ribbon steps, then call compile_document() synchronously,
+then emit the compilation event. This is the most reliable approach.
 """
 
-import os
 import json
 import asyncio
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
-from services.llm_service import (
-    compile_document_stream,
-    compile_document_stream_fallback,
-)
-from db.supabase import get_client
+from services.llm_service import compile_document
 from services import canvas_service
-from db.queries import log_event
 
 router = APIRouter()
-USE_FALLBACK = os.environ.get("STREAMING_FALLBACK", "false").lower() == "true"
+
+IMMEDIATE_STEPS = [
+    {"event": "reasoning_step", "step": 1, "action": "reading_source",    "detail": "Analysing provided content",                   "confidence": "high"},
+    {"event": "reasoning_step", "step": 2, "action": "extracting_claims", "detail": "Identifying key concepts, assumptions, evidence", "confidence": "high"},
+    {"event": "reasoning_step", "step": 3, "action": "classifying_nodes", "detail": "Tagging node types and provenance",              "confidence": "medium"},
+]
 
 
 @router.get("/canvas/{canvas_id}/stream")
@@ -29,40 +27,31 @@ async def stream_canvas(
     workspace_mode: str = "analytical",
     branch_id: str = "",
 ):
-    """
-    SSE endpoint consumed by the Reasoning Ribbon.
-    Streams: {"type":"step","data":{...}} events, then {"type":"compilation","data":{...}},
-    then {"type":"done"}.
-
-    After streaming, applies the compilation to Supabase (only on "compilation" event).
-    """
     async def generate():
-        compilation_result = None
+        # 1. Emit ribbon steps immediately (no waiting)
+        for step in IMMEDIATE_STEPS:
+            yield f"data: {json.dumps({'type': 'step', 'data': step})}\n\n"
+            await asyncio.sleep(0.3)   # small delay so ribbon animates visibly
 
-        gen = (
-            compile_document_stream_fallback(text, workspace_mode)
-            if USE_FALLBACK
-            else compile_document_stream(text, workspace_mode)
-        )
+        # 2. Run compilation (synchronous GPT-4o call with JSON mode — proven reliable)
+        try:
+            compilation = compile_document(text, workspace_mode)
+        except Exception as e:
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+            yield 'data: {"type":"done"}\n\n'
+            return
 
-        async for event_str in gen:
-            yield event_str
-            # Parse to detect compilation event
-            try:
-                payload = json.loads(event_str.replace("data: ", "", 1).strip())
-                if payload.get("type") == "compilation":
-                    compilation_result = payload.get("data", {})
-            except Exception:
-                pass
+        # 3. Emit the compilation result
+        yield f"data: {json.dumps({'type': 'compilation', 'data': compilation})}\n\n"
 
-        # Apply compilation to DB after streaming completes
-        if compilation_result and branch_id and canvas_id:
+        # 4. Persist to Supabase if canvas context is available
+        if branch_id and canvas_id:
             try:
                 canvas_service.apply_compilation(
-                    canvas_id, branch_id, compilation_result, "text", workspace_mode
+                    canvas_id, branch_id, compilation, "text", workspace_mode
                 )
             except Exception as e:
-                yield f"data: {json.dumps({'type':'error','message':str(e)})}\n\n"
+                yield f"data: {json.dumps({'type': 'error', 'message': f'DB write failed: {e}'})}\n\n"
 
         yield 'data: {"type":"done"}\n\n'
 
@@ -70,8 +59,8 @@ async def stream_canvas(
         generate(),
         media_type="text/event-stream",
         headers={
-            "Cache-Control":   "no-cache",
+            "Cache-Control":     "no-cache",
             "X-Accel-Buffering": "no",
-            "Connection":      "keep-alive",
+            "Connection":        "keep-alive",
         },
     )

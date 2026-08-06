@@ -203,18 +203,29 @@ async def compile_document_stream(
                 compilation_json += line + "\n"
 
     # Flush remaining buffer as compilation
+    # GPT-4o sometimes wraps the JSON in markdown code fences — strip them
     remaining = (buffer + compilation_json).strip()
+    # Remove markdown code fences: ```json ... ``` or ``` ... ```
+    if remaining.startswith("```"):
+        lines = remaining.split("\n")
+        lines = [l for l in lines if not l.strip().startswith("```")]
+        remaining = "\n".join(lines).strip()
+
     if remaining:
         try:
             obj = json.loads(remaining)
-            # Ensure required keys
             obj.setdefault("nodes", [])
             obj.setdefault("reasoning_steps", [])
             obj.setdefault("contradictions", [])
             obj.setdefault("proposed_memories", [])
             yield f"data: {json.dumps({'type':'compilation','data':obj})}\n\n"
         except json.JSONDecodeError:
-            yield f"data: {json.dumps({'type':'error','message':'Compilation parse failed'})}\n\n"
+            # Last resort: fall back to a synchronous compile_document call
+            try:
+                obj = compile_document(text, workspace_mode)
+                yield f"data: {json.dumps({'type':'compilation','data':obj})}\n\n"
+            except Exception as e:
+                yield f"data: {json.dumps({'type':'error','message':str(e)})}\n\n"
 
 
 async def compile_document_stream_fallback(

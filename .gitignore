@@ -25,6 +25,12 @@ src/frontend/.env
 # Supabase
 .supabase/
 
+# Credential files — NEVER commit these
+*.csv
+*accessKey*
+*credentials*
+*secret*
+
 # OS
 .DS_Store
 Thumbs.db

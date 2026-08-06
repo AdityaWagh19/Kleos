@@ -15,6 +15,7 @@ import { PauseStopControls } from './components/PauseStopControls';
 import { VoiceTranscript } from './components/VoiceTranscript';
 import { ActivityLog } from './panels/ActivityLog';
 import { SourceFilter } from './components/SourceFilter';
+import { TextInputBar } from './components/TextInputBar';
 import { useVoice } from './hooks/useVoice';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { api } from './services/api';
@@ -43,9 +44,10 @@ export default function App() {
   const [compareMode, setCompareMode]       = useState(false);
 
   // AI compilation state
-  const [ribbonSteps] = useState<ReasoningStep[]>([]);
-  const [isCompiling,  setIsCompiling]  = useState(false);
-  const [pillState,    setPillState]    = useState<'working' | 'listening' | 'ready'>('ready');
+  const [ribbonSteps,  setRibbonSteps] = useState<ReasoningStep[]>([]);
+  const [isCompiling,  setIsCompiling] = useState(false);
+  const [pillState,    setPillState]   = useState<'working' | 'listening' | 'ready'>('ready');
+  const [dropError,    setDropError]   = useState<string | null>(null);
   const sseRef = useRef<EventSource | null>(null);
 
   // Panels
@@ -83,6 +85,55 @@ export default function App() {
       .catch(err => setError(String(err)))
       .finally(() => setLoading(false));
   }, []);
+
+  // ── Text / file drop ─────────────────────────────────────────────────────
+
+  const handleTextDrop = useCallback(async (text: string) => {
+    if (!canvasId || !branchId) return;
+    setDropError(null);
+    setIsCompiling(true);
+    setPillState('working');
+    setRibbonSteps([]);
+
+    try {
+      const base = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
+
+      // Open SSE stream first to capture ribbon steps
+      const streamUrl = `${base}/api/canvas/${canvasId}/stream?text=${encodeURIComponent(text)}&workspace_mode=${mode}&branch_id=${branchId}`;
+      const es = new EventSource(streamUrl);
+      sseRef.current = es;
+
+      es.onmessage = (e) => {
+        try {
+          const payload = JSON.parse(e.data as string) as { type: string; data?: unknown };
+          if (payload.type === 'step' && payload.data) {
+            setRibbonSteps(prev => [...prev, payload.data as ReasoningStep]);
+          } else if (payload.type === 'done' || payload.type === 'compilation') {
+            es.close();
+            setIsCompiling(false);
+            setPillState('ready');
+            // Reload canvas nodes after compilation
+            window.dispatchEvent(new CustomEvent('kleos:reload-canvas'));
+          } else if (payload.type === 'error') {
+            es.close();
+            setDropError('Compilation failed — check backend logs.');
+            setIsCompiling(false);
+            setPillState('ready');
+          }
+        } catch {}
+      };
+      es.onerror = () => {
+        es.close();
+        setDropError('Connection error during compilation.');
+        setIsCompiling(false);
+        setPillState('ready');
+      };
+    } catch (err) {
+      setDropError(String(err));
+      setIsCompiling(false);
+      setPillState('ready');
+    }
+  }, [canvasId, branchId, mode]);
 
   // ── Mode selection ───────────────────────────────────────────────────────
 
@@ -329,6 +380,24 @@ export default function App() {
             onStepClick={() => {}}
           />
         </div>
+
+        {/* Drop error banner */}
+        {dropError && (
+          <div className="px-4 py-2 flex items-center justify-between"
+               style={{ background: '#3a1a1a', borderTop: '1px solid #e84040' }}>
+            <span style={{ fontSize: '12px', color: '#e84040' }}>{dropError}</span>
+            <button onClick={() => setDropError(null)}
+                    className="material-symbols-outlined" style={{ fontSize: '16px', color: '#e84040' }}>
+              close
+            </button>
+          </div>
+        )}
+
+        {/* Text input bar */}
+        <TextInputBar
+          onSubmit={handleTextDrop}
+          isCompiling={isCompiling}
+        />
       </main>
 
       {/* ── Overlays ── */}
