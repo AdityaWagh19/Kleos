@@ -2,25 +2,23 @@
 
 **Kleos** — Visual Identity, Design Tokens, Component Specifications, and Implementation Reference
 
-> Citrine beacon in void — a glowing lime cube anchoring a dark room, with thin white type and scattered node rings floating around it.
+> Warm cream-paper workspace with graphite accents — a studio where matte-black ink dots float over linen architecture.
 
 ---
 
 ## Design Philosophy
 
-Kleos speaks in a single dramatic gesture: a luminous citrine cube floating in deep carbon void, surrounded by orbiting nodes and fragments of structured thought. The interface is almost entirely dark with one electric lime accent (`#e5ff5d`) that does all the chromatic work — primary actions, icon strokes, decorative cubes, brand marks.
+Kleos operates in a warm-paper product language: a slightly cream canvas carries flat, low-elevation surfaces in sage-tinted stone, with almost no chromatic presence — one vivid green dot punctuates an otherwise fully achromatic system. The whole product reads as architectural: weight 400 headlines, tight -0.01em tracking, and pill-shaped controls feel drawn rather than printed.
 
-Typography is a single humanist sans (Neue Haas Grotesk) set with confident, slightly tight tracking, where 80px display headlines occupy entire rows and small labels earn positive tracking. The page oscillates between dense dark sections packed with constellation diagrams and one cream reversal where giant translucent cubes frame a centered message.
-
-Every screen should feel like looking into a server room through a viewport — dark, quiet, punctuated by one bright signal.
+Color is rationed to functional punctuation (status dots, active nav dots, gradient-free product screenshots) while the primary CTA is a matte black capsule, not a brand-colored button. Surfaces stack from canvas → white card → sage tile → glass overlay without ever using shadows as decoration; depth is communicated through color temperature shifts from cool gray to warm stone.
 
 ---
 
 ## Theme
 
-**Mode:** Mixed (primarily dark, one cream reversal band per page)
-**Base:** Dark canvas (`#111111`) with single chromatic accent (`#e5ff5d`)
-**Rhythm:** DARK HERO → DARK CONTENT → DARK FEATURE → LIGHT REVERSAL → (DARK CONTINUES)
+**Mode:** Light  
+**Base:** Warm linen canvas (`#edede8`) with single chromatic accent (`#4cc02b`)  
+**Rhythm:** LINEN CANVAS → WHITE CARD → WARM STONE → GLASS OVERLAY → GRAPHITE INVERSE
 
 ---
 
@@ -30,119 +28,147 @@ Every screen should feel like looking into a server room through a viewport — 
 
 | Name | Value | CSS Custom Property | Design Token | Role |
 |------|-------|--------------------|----|------|
-| Citrine Signal | `#e5ff5d` | `--color-citrine-signal` | `color.citrine-signal` | Primary action buttons, brand cube fills, accent icon strokes, decorative 3D cubes, featured logo marks — the single chromatic voice of the system |
-| Carbon Black | `#111111` | `--color-carbon-black` | `color.carbon-black` | Page canvas, primary text on light sections, dominant border color, button fills on reversed (light) sections |
-| Bone White | `#f9f9f9` | `--color-bone-white` | `color.bone-white` | Primary text on dark canvas, nav and body text, light icon fills, ghost button text |
-| Graphite | `#2b2b2b` | `--color-graphite` | `color.graphite` | Elevated surface above carbon, secondary panels, darker card variants |
-| Ash | `#6e6e6e` | `--color-ash` | `color.ash` | Muted card surface, tertiary background layers behind content blocks |
-| Stone | `#9c9c9c` | `--color-stone` | `color.stone` | Muted body text, secondary link text, low-priority borders, helper labels |
-| Smoke | `#565656` | `--color-smoke` | `color.smoke` | Dividers, subtle borders, decorative strokes in illustrations |
-| Chalk | `#d6d6d6` | `--color-chalk` | `color.chalk` | Card borders on dark sections, hairline dividers between content blocks |
-| Cream Paper | `#eeeeee` | `--color-cream-paper` | `color.cream-paper` | Light section background — the single warm reversal that breaks the dark rhythm |
-| Pure Black | `#000000` | `--color-pure-black` | `color.pure-black` | Maximum contrast text, logo silhouettes, hard-edge decorative fills |
-| Sand | `#b7b3a2` | `--color-sand` | `color.sand` | Warm-tinted decorative fills, illustration accents — the only chromatic neutral |
+| Linen Canvas | `#edede8` | `--color-linen-canvas` | `color.linen-canvas` | Page background, section surfaces — warm off-white that pushes the whole system toward paper rather than screen |
+| Frosted White | `#ffffff` | `--color-frosted-white` | `color.frosted-white` | Card surfaces, elevated panels, glass overlays — clean white floats above the linen canvas for primary content |
+| Warm Stone | `#dbdbd2` | `--color-warm-stone` | `color.warm-stone` | Secondary card fills, secondary button backgrounds, accent surface — sage-tinted beige gives neutral elements warmth without becoming chromatic |
+| Pebble | `#c0c0c0` | `--color-pebble` | `color.pebble` | Circular accent tiles, muted card backgrounds — cool gray that sits one step back from stone for de-emphasized surfaces |
+| Graphite Ink | `#141414` | `--color-graphite-ink` | `color.graphite-ink` | Primary action button background, dark text on light surfaces — near-black with a hair of warmth, anchors every CTA |
+| Charcoal Body | `#292929` | `--color-charcoal-body` | `color.charcoal-body` | Primary body and heading text — readable but softer than pure black, keeps long-form copy from feeling harsh |
+| Slate Caption | `#6f6f6e` | `--color-slate-caption` | `color.slate-caption` | Secondary body, helper text, descriptive copy — carries the most volume of any text color |
+| Ash Subheading | `#8f8f8e` | `--color-ash-subheading` | `color.ash-subheading` | Subtle labels, muted headings, decorative type — sits between caption and hairline |
+| Iron Nav | `#353535` | `--color-iron-nav` | `color.iron-nav` | Secondary body text, navigation labels, and subdued headings. Do not promote it to the primary CTA color |
+| Onyx Border | `#000000` | `--color-onyx-border` | `color.onyx-border` | Hairline borders, strong dividers, selected-state outlines — used at 1-2px to outline cards, buttons, and focus rings |
+| Quartz | `#d0d0c8` | `--color-quartz` | `color.quartz` | Quietest surface tint, reserved for low-contrast dividers and hover-state hints |
+| Lime Pulse | `#4cc02b` | `--color-lime-pulse` | `color.lime-pulse` | Green wash for highlight backgrounds, decorative bands, and soft emphasis behind content. Use as a supporting accent, not as a status color |
 
 ### 1.2 Surface Hierarchy
 
 | Level | Name | Value | CSS Custom Property | Design Token | Purpose |
 |-------|------|-------|--------------------|----|---------|
-| 1 | Carbon Canvas | `#111111` | `--surface-carbon-canvas` | `surface.carbon-canvas` | Page base — majority of the experience lives here |
-| 2 | Graphite Panel | `#2b2b2b` | `--surface-graphite-panel` | `surface.graphite-panel` | Elevated cards and panels sitting on the carbon canvas |
-| 3 | Ash Plate | `#6e6e6e` | `--surface-ash-plate` | `surface.ash-plate` | Muted secondary surfaces, logo cloud backgrounds |
-| 4 | Cream Reversal | `#eeeeee` | `--surface-cream-reversal` | `surface.cream-reversal` | Light section — the single bright band that resets the eye |
+| 0 | Linen Canvas | `#edede8` | `--surface-linen-canvas` | `surface.linen-canvas` | Page background — warm off-white that warms the entire system |
+| 1 | Frosted White | `#ffffff` | `--surface-frosted-white` | `surface.frosted-white` | Primary card surface, feature panels, elevated content blocks |
+| 2 | Warm Stone | `#dbdbd2` | `--surface-warm-stone` | `surface.warm-stone` | Secondary surface for pricing cards, de-emphasized panels, button backgrounds |
+| 3 | Glass Overlay | `#ffffffb3` | `--surface-glass-overlay` | `surface.glass-overlay` | Floating panels, chat widgets, sticky elements — paired with backdrop blur(12px) |
+| 4 | Graphite | `#141414` | `--surface-graphite` | `surface.graphite` | Inverted surface — dark CTAs, emphasis blocks, cookie consent panels |
 
 ### 1.3 Color Usage Rules
 
-- **Citrine Signal** is a binary signal. It is either fully on (`#e5ff5d`) or off. Never use multiple shades of lime for hover/active states. Rely on opacity shifts and surface steps for state changes.
-- **One primary action per viewport.** The lime against carbon creates the highest-attention signal in the system — use it sparingly. Never more than one filled citrine element per viewport.
-- **No second chromatic accent.** The system's power comes from single-color discipline. Adding blue, red, or purple destroys the signal-to-noise ratio.
-- **One cream reversal per page.** Stacking light sections dilutes the reversal's impact. The brightness reset is the page's dramatic beat.
+- **Lime Pulse is a binary signal.** `#4cc02b` is the single chromatic element. It appears as an 8px status dot next to live states, or as a checkmark in pricing cards. Never use it as a button fill, page accent, or decorative block color.
+- **One chromatic element per viewport.** The discipline is the brand. Adding a secondary brand color or status spectrum dilutes the architectural feel.
+- **No shadows as decoration.** If depth is needed, shift surface tone from white → stone → graphite. Shadows are reserved for glass overlays and floating widgets only.
+- **Stack maximum three surface tones per screen.** Canvas → white → stone. Any deeper stacking breaks the warmth.
 
 ---
 
 ## 2. Typography Tokens
 
-### 2.1 Typeface
+### 2.1 Typefaces
 
-**Neue Haas Grotesk Text** — Sole typeface across the entire system.
+**Switzer** — Primary typeface for all UI, body, headings, and buttons.
 
-Weight 400 carries body, nav, and most UI. Weight 500 is reserved for emphasized labels and button text. Display headlines at 80px with 0.90 line-height create the signature monolithic rows. Small labels (10–12px) use positive tracking (+0.020 to +0.032em) to read as uppercase utility marks. The humanist geometry of Haas Grotesk — slightly humanist terminals, even stroke contrast — gives the dark interface a warm, editorial quality rather than feeling like a terminal.
+Weight 400 dominates even at display sizes — headlines whisper rather than shout, which gives the brand authority through restraint. The Minor Third scale (1.2) is unusually compressed for a SaaS site, so sizes cluster more tightly than a Major Third or Perfect Fourth system would produce.
 
 | Property | Value |
 |----------|-------|
-| CSS Custom Property | `--font-neue-haas-grotesk-text` |
-| Design Token | `font.neue-haas-grotesk-text` |
-| Stack | `'Neue Haas Grotesk Text', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif` |
-| Substitutes | Inter, Soehne, Neue Haas Grotesk Display |
-| Weights Used | 400 (regular), 500 (medium) |
-| OpenType Features | `"kern" on, "liga" on` |
+| CSS Custom Property | `--font-switzer` |
+| Design Token | `font.switzer` |
+| Stack | `'Switzer', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif` |
+| Substitutes | Inter, Manrope, or DM Sans at matching weights |
+| Weights Used | 400, 500, 600 |
+| Sizes | 12, 14, 16, 17, 19, 23, 27, 32, 38, 40, 45, 64, 80 |
+| Line Heights | 0.8 / 1.0 / 1.2 / 1.3 / 1.35 / 1.4 / 1.5 / 1.77 |
+| Letter Spacing | -0.02em at 80px display, -0.01em at 64px and below, normal at body sizes |
+
+**system-ui** — Icon-internal text and OS-native labels — minimal usage, mostly decorative.
+
+| Property | Value |
+|----------|-------|
+| CSS Custom Property | `--font-system-ui` |
+| Design Token | `font.system-ui` |
+| Weights | 400 |
+| Sizes | 16px |
+| Line Height | 1.0 |
+
+**sans-serif** — Detected in extracted data.
+
+| Property | Value |
+|----------|-------|
+| CSS Custom Property | `--font-sans-serif` |
+| Design Token | `font.sans-serif` |
+| Weights | 400, 600 |
+| Sizes | 15px |
+| Line Height | 1.6 |
+| Letter Spacing | 0.007em |
 
 ### 2.2 Type Scale
 
-| Role | Size | Line Height | Letter Spacing | CSS Token | Design Token |
-|------|------|-------------|----------------|-----------|--------------|
-| utility-label | 10px | 1.5 | +0.32px | `--text-utility-label` | `typography.xs` |
-| caption | 12px | 1.5 | +0.24px | `--text-caption` | `typography.xs-4` |
-| body-sm | 14px | 1.5 | — | `--text-body-sm` | — |
-| body | 16px | 1.5 | — | `--text-body` | `typography.base` |
-| subhead | 20px | 1.3 | — | `--text-subhead` | `typography.xl` |
-| heading-sm | 24px | 1.2 | -0.24px | `--text-heading-sm` | `typography.2xl` |
-| heading | 48px | 1.1 | -0.48px | `--text-heading` | — |
-| display | 80px | 0.9 | -0.80px | `--text-display` | `typography.5xl` |
+| Role | Size | Line Height | Letter Spacing | CSS Token |
+|------|------|-------------|----------------|-----------|
+| small | 12px | 1.77 | — | `--text-small` |
+| caption | 14px | 1.5 | — | `--text-caption` |
+| body-sm | 16px | 1.5 | — | `--text-body-sm` |
+| body | 19px | 1.4 | -0.19px | `--text-body` |
+| body-lg | 23px | 1.35 | -0.23px | `--text-body-lg` |
+| subheading | 27px | 1.3 | -0.27px | `--text-subheading` |
+| heading-sm | 32px | 1.3 | -0.32px | `--text-heading-sm` |
+| heading | 45px | 1.2 | -0.45px | `--text-heading` |
+| heading-lg | 64px | 0.8 | -0.64px | `--text-heading-lg` |
+| display | 80px | 1.0 | -1.6px | `--text-display` |
 
 ### 2.3 Typography Composite Tokens (Full Detail)
 
-These are the exact composite typography steps from the design token file:
-
-| Token | Font Size | Weight | Line Height | Description |
-|-------|-----------|--------|-------------|-------------|
-| `typography.xs` | 10px | 500 | 1.3 | Utility label — medium weight, tight |
-| `typography.xs-2` | 10px | 500 | 1.0 | Utility label — single-line height |
-| `typography.xs-3` | 10px | 400 | 2.08 | Utility label — loose, body weight |
-| `typography.xs-4` | 12px | 400 | 1.73 | Caption — body weight, airy |
-| `typography.xs-5` | 12px | 400 | 1.3 | Caption — tight |
-| `typography.base` | 16px | 400 | 1.3 | Body base — standard |
-| `typography.base-2` | 16px | 400 | 1.0 | Body base — single-line |
-| `typography.base-3` | 16px | 500 | 1.3 | Body base — medium weight |
-| `typography.base-4` | 16px | 400 | 1.2 | Body base — snug |
-| `typography.base-5` | 16px | 400 | 1.3 | Body base — alias |
-| `typography.xl` | 20px | 400 | 1.5 | Subhead — comfortable |
-| `typography.2xl` | 24px | 400 | 1.2 | Heading small — snug |
-| `typography.2xl-2` | 24px | 400 | 1.2 | Heading small — alias |
-| `typography.5xl` | 80px | 400 | 0.9 | Display — signature line-height |
-| `typography.5xl-2` | 80px | 400 | 1.0 | Display — neutral line-height |
+| Token | Font Family | Font Size | Weight | Line Height | Description |
+|-------|-------------|-----------|--------|-------------|-------------|
+| `typography.xs` | Switzer | 12px | 400 | 1.77 | Small labels, captions |
+| `typography.sm` | Switzer | 14px | 400 | 1.5 | Caption standard |
+| `typography.sm-2` | Switzer | 14px | 400 | 1.4 | Caption tight |
+| `typography.base` | sans-serif | 15px | 400 | 1.6 | Base body |
+| `typography.base-2` | sans-serif | 15px | 600 | 1.6 | Base body semibold |
+| `typography.base-3` | sans-serif | 15px | 600 | 1.6 | Base body semibold alias |
+| `typography.base-4` | Switzer | 16px | 400 | 1.5 | Body small |
+| `typography.base-5` | Switzer | 16px | 600 | 1.5 | Body small semibold |
+| `typography.base-6` | system-ui | 16px | 400 | 1.0 | OS-native labels |
+| `typography.lg` | Switzer | 17px | 400 | 1.4 | Large body |
+| `typography.lg-2` | Switzer | 19px | 400 | 1.4 | Primary body |
+| `typography.xl` | Switzer | 23px | 400 | 1.35 | Body large |
+| `typography.2xl` | Switzer | 27px | 400 | 1.3 | Subheading |
+| `typography.3xl` | Switzer | 32px | 400 | 1.3 | Heading small |
+| `typography.4xl` | Switzer | 38px | 400 | 1.3 | Heading mid |
+| `typography.4xl-2` | Switzer | 40px | 400 | 0.6 | Heading mid tight |
+| `typography.4xl-3` | Switzer | 45px | 400 | 1.2 | Heading |
+| `typography.5xl` | Switzer | 64px | 400 | 0.8 | Heading large |
+| `typography.5xl-2` | Switzer | 64px | 400 | 1.1 | Heading large comfortable |
+| `typography.5xl-3` | Switzer | 80px | 500 | 1.0 | Display |
 
 ### 2.4 Typography Rules
 
-- **Weight 400 at 80px is the signature.** Do not set display headlines in weight 700 or 600. Bolding at scale makes it generic. The 400 weight at this size whispers power.
-- **Positive tracking on small labels.** All 10–12px uppercase utility labels use +0.027 to +0.032em letter-spacing to read as terminal/UI marks rather than prose.
-- **Negative tracking at scale.** Display and heading sizes use negative letter-spacing to counteract optical expansion at large sizes.
-- **Text-transform: uppercase** applied to all display headlines.
+- **Weight 400 at display sizes is the signature.** Do not bold headlines above body weight; heavier weights belong in buttons and badges only.
+- **Tight negative tracking at scale.** -0.01em at 64px and below, -0.02em at 80px display. Never apply positive tracking to body copy — it breaks the tight architectural feel.
+- **Weight 500 is exceptional.** Reserved for the display headline (80px) and the product wordmark. Everything else rides at 400.
 
 ---
 
 ## 3. Spacing Tokens
 
-**Base unit:** 8px
+**Base unit:** 6px  
 **Density:** Comfortable
 
 ### 3.1 Spacing Scale
 
 | Name | Value | CSS Custom Property | Design Token |
 |------|-------|--------------------|----|
-| unit | 8px | `--spacing-unit` | `spacing.unit` |
-| 8 | 8px | `--spacing-8` | `spacing.8` |
-| 16 | 16px | `--spacing-16` | `spacing.16` |
+| unit | 6px | `--spacing-unit` | `spacing.unit` |
+| 6 | 6px | `--spacing-6` | `spacing.6` |
+| 12 | 12px | `--spacing-12` | `spacing.12` |
+| 18 | 18px | `--spacing-18` | `spacing.18` |
 | 24 | 24px | `--spacing-24` | `spacing.24` |
-| 32 | 32px | `--spacing-32` | `spacing.32` |
-| 40 | 40px | `--spacing-40` | `spacing.40` |
+| 36 | 36px | `--spacing-36` | `spacing.36` |
 | 48 | 48px | `--spacing-48` | `spacing.48` |
-| 64 | 64px | `--spacing-64` | `spacing.64` |
-| 80 | 80px | `--spacing-80` | `spacing.80` |
+| 60 | 60px | `--spacing-60` | `spacing.60` |
+| 72 | 72px | `--spacing-72` | `spacing.72` |
+| 84 | 84px | `--spacing-84` | `spacing.84` |
 | 96 | 96px | `--spacing-96` | `spacing.96` |
-| 128 | 128px | `--spacing-128` | `spacing.128` |
-| 144 | 144px | `--spacing-144` | `spacing.144` |
-| 192 | 192px | `--spacing-192` | `spacing.192` |
+| 138 | 138px | `--spacing-138` | `spacing.138` |
 
 ---
 
@@ -152,23 +178,26 @@ These are the exact composite typography steps from the design token file:
 
 | Alias | Value | CSS Custom Property | Design Token | Named Usage |
 |-------|-------|--------------------|----|-------------|
-| md | 4px | `--radius-md` | `radius.md` | Buttons (`--radius-buttons`) |
-| lg | 8px | `--radius-lg` | `radius.lg` | Nav container (`--radius-nav`) |
+| md | 3.75px | `--radius-md` | `radius.md` | Small elements, consent dialogs (`--radius-smallelements`) |
+| md-2 | 6px | `--radius-md-2` | `radius.md-2` | Inner tiles (`--radius-innertiles`) |
 | xl | 12px | `--radius-xl` | `radius.xl` | Cards (`--radius-cards`) |
-| 2xl | 20px | `--radius-2xl` | `radius.2xl` | Decorative elements (`--radius-decorative`) |
-| full | 1440px / 9999px | `--radius-full` | `radius.full` | Pills (`--radius-pills`) |
+| 3xl | 30px | `--radius-3xl` | `radius.3xl` | — |
+| full | 48px | `--radius-full` | `radius.full` | — |
+| full-2 | 200px | `--radius-full-2` | `radius.full-2` | Buttons and pills (`--radius-buttons`, `--radius-pills`) |
+| full-3 | 9999px | `--radius-full-3` | `radius.full-3` | Avatars (`--radius-avatars`) |
 
 ### 4.2 Named Component Radii
 
 | Element | Value | CSS Custom Property |
 |---------|-------|---------------------|
-| nav | 8px | `--radius-nav` |
 | cards | 12px | `--radius-cards` |
-| pills | 9999px | `--radius-pills` |
-| buttons | 4px | `--radius-buttons` |
-| decorative | 20px | `--radius-decorative` |
+| pills | 200px | `--radius-pills` |
+| avatars | 9999px | `--radius-avatars` |
+| buttons | 200px | `--radius-buttons` |
+| innerTiles | 6px | `--radius-innertiles` |
+| smallElements | 3.75px | `--radius-smallelements` |
 
-**Rule:** Never use pill-shaped (9999px) buttons. The 4px radius is sharp and architectural. Pills would feel consumer/cute and break the system's editorial posture.
+**Rule:** Use 200px radius on every button and pill — the capsule shape is non-negotiable for brand recognition. Only consent dialogs may use the 3.75px sharp corner; it is the system's intentional outlier.
 
 ---
 
@@ -176,146 +205,128 @@ These are the exact composite typography steps from the design token file:
 
 | Property | Value | CSS Custom Property |
 |----------|-------|---------------------|
-| Page max-width | 1280px | `--page-max-width` |
+| Page max-width | 1200px | `--page-max-width` |
 | Section gap | 80px | `--section-gap` |
-| Card padding | 24–32px | `--card-padding` |
-| Element gap | 16–24px | `--element-gap` |
+| Card padding | 18px | `--card-padding` |
+| Element gap | 9px | `--element-gap` |
 
 ### 5.1 Layout Principles
 
-Max-width 1280px, centered. The page is a vertical stack of full-width bands, most dark with 80px vertical section padding. The hero is a centered headline-over-cube composition with scattered node icons orbiting the cube — the cube sits above the headline text, not behind it.
-
-Grid usage is minimal — most content is centered stacks or 2-column splits, no card grids. Content never nests inside rounded card backgrounds with shadows. Everything sits flat on the carbon canvas or the cream reversal.
+Max-width 1200px centered container with generous outer padding. Hero is a centered text stack (display headline, sub-headline, description, trust bar, dual CTA) followed by a full-width product screenshot with gradient backdrop. Sections alternate between linen canvas and white card surfaces separated by 80px gaps. Feature blocks use a 2-column text-plus-screenshot layout that alternates sides. Pricing is a 4-column card grid with equal widths. Navigation is a single transparent top bar with logo left and pill CTA right.
 
 ---
 
-## 6. Elevation
+## 6. Elevation & Shadows
 
-| Element | Elevation Treatment |
-|---------|---------------------|
-| Nav container | None — sits flat on canvas |
-| Citrine Primary Button | None — flat color, no shadow |
-| Cards | None — relies on color step from canvas surface (`#111111` → `#2b2b2b`) |
-| Citrine Cube | Inner gradient + outer glow: `rgba(229,255,93,0.15) 0 0 40px` to simulate light emission |
+| Name | Value | CSS Custom Property | Design Token | Usage |
+|------|-------|--------------------|----|-------|
+| xl | `rgba(0, 0, 0, 0.3) 0px 32px 68px 0px` | `--shadow-xl` | `shadow.xl` | Floating chat widget |
+| xl-2 | `rgba(16, 24, 40, 0.12) 0px 18px 55px 0px` | `--shadow-xl-2` | `shadow.xl-2` | Glass overlay panel |
 
-The Citrine Cube is the **only** element in the system that uses gradients, glow, or dimensional depth. Everything else is flat.
+**Rule:** Shadows are not used for decoration. Depth is expressed by stepping the surface tone (linen → white → stone → glass → graphite). The two shadow tokens exist exclusively for floating/modal surfaces.
 
 ---
 
 ## 7. Components
 
-### 7.1 Citrine Primary Button
+### 7.1 Pill Button — Dark (Primary)
 
-**Role:** Main call-to-action across the site
+**Role:** Primary CTA
 
-Filled `#e5ff5d` background, `#111111` text, 4px radius, padding `12px 24px`. Neue Haas Grotesk Text 500 at 16px. Includes a small left-side pixel icon. The lime against carbon creates the highest-attention signal in the system.
+Matte black capsule. Background `#141414`, text `#ffffff`, border-radius 200px, padding `0 18px`, height ≈44px. Weight 400 in Switzer at 16px. Letter-spacing inherits body tracking. The chromatic-free CTA is the system's signature.
 
-**Usage rule:** Use sparingly. Never more than one per viewport.
+### 7.2 Pill Button — Stone (Secondary)
 
-### 7.2 Dark Primary Button
+**Role:** Secondary action, pricing CTA
 
-**Role:** Primary action on the cream/light reversal section
+Warm sage capsule. Background `#dbdbd2`, text `#292929`, optional 1-2px `#292929` border, border-radius 200px, padding `0 24px`, height ≈44px. Same Switzer 16px/400 as primary. The workhorse — pricing cards, demo buttons, and feature CTAs use this instead of dark fill.
 
-Filled `#111111` background, `#f9f9f9` text, 4px radius, padding `12px 24px`. Inverted counterpart to the Citrine Primary. The lime accent shifts to a small left-side pixel glyph (citrine or dark depending on section) so the action always carries a brand seed.
+### 7.3 Pill Button — Ghost (Tertiary)
 
-### 7.3 Ghost Button
+**Role:** Inline link, low-emphasis action
 
-**Role:** Secondary action, paired with primary
+Transparent fill, 1px `#353535` border, text `#353535`, border-radius 200px, padding `9px 12px`. Smaller padding marks it as a lightweight control, not a section-level CTA.
 
-Transparent background, `#f9f9f9` 1px border on dark sections / `#111111` border on light sections, uppercase Neue Haas 500 at 12px with +0.032em tracking, 4px radius, `10px 20px` padding. Reads as a utility chip rather than a competing CTA.
+### 7.4 Square White Button
 
-### 7.4 Navigation Bar
+**Role:** Consent dialog action — intentional outlier
+
+Background `#ffffff`, text `#000000`, border-radius 3.75px (sharp — breaks the pill language intentionally for cookie/consent contexts), padding 15px square. Use only when the pill vocabulary is wrong for the context.
+
+### 7.5 Feature Card — Warm Stone
+
+**Role:** Feature highlight, de-emphasized panel
+
+Background `#dbdbd2`, border-radius 12px, padding 18px, no shadow. Used for secondary feature blocks that should recede behind the main white content card.
+
+### 7.6 Feature Card — White
+
+**Role:** Primary content panel
+
+Background `#ffffff`, border-radius 12px, padding 18px, optional 1px solid `#0000001f` border. The default elevated surface. No shadow by default; depth comes from the warmer canvas behind it.
+
+### 7.7 Glass Overlay Panel
+
+**Role:** Floating widget, sticky chat
+
+Background `rgba(255, 255, 255, 0.7)`, border-radius 6px, padding 18px, `backdrop-filter: blur(12px)`. Shadow: `rgba(0,0,0,0.3) 0 32px 68px 0`. Used for the floating support widget and any UI that needs to float over imagery while staying legible.
+
+### 7.8 Circular Accent Tile
+
+**Role:** Category icon container, decorative dot
+
+Background `#c0c0c0`, border-radius 50%, no padding (icon centered inside). Functions as a quiet visual marker — never the primary CTA, always a supporting element.
+
+### 7.9 Navigation Bar
 
 **Role:** Top-level site navigation
 
-Transparent on dark canvas. Left: wordmark in `#f9f9f9` weight 500 at 20px, tracking 0.027em. Center-right: nav links in Neue Haas 500 at 12px with +0.027em tracking, `#f9f9f9`, separated by 32px. Right: Citrine Primary Button. 8px radius on the nav container.
+Transparent background over linen canvas. Logo + product nav + auth links + dark pill CTA right-aligned. Height ≈60px. Nav text in `#353535` at 14–16px Switzer 400.
 
-### 7.5 Citrine Cube
+**Example implementation:**
+- Logo: Switzer 500, 16px, `#292929`
+- Nav links: Switzer 400, 14px, `#353535`, 24px horizontal gap
+- Right cluster: Login link `#353535` + dark pill (`#141414` fill, white text, 200px radius, `0 18px` padding)
 
-**Role:** Brand signature element — 3D glowing cube
+### 7.10 Pricing Card
 
-Translucent lime cube (`#e5ff5d` with internal gradient highlights suggesting volume) rendered as a 3D isometric block. Appears in hero (centered above headline), in the constellation diagram (as central node), and in the cream reversal (as large 3–4 cube cluster framing content). Cube edges glow — this is the only place gradients, light, and dimensionality live in the system.
+**Role:** Pricing tier display
 
-**The Citrine Cube Rule:** The 3D translucent lime cube is the only dimensional element in the system. It is not decoration — it is the brand's logo extended into space. Every screen should either:
-- (a) contain at least one cube,
-- (b) reference the cube's geometry in a flat icon, or
-- (c) arrange node icons in a constellation pattern that implies the cube at its center.
+Background `#dbdbd2` with 12px radius and 18px padding. Tier name and price at 32px/27px Switzer 400. Checklist uses Lime Pulse (`#4cc02b`) checkmarks at 14-16px. Featured tier gains a subtle gradient highlight strip across the top edge.
 
-Screens without any cube presence feel incomplete. The cube's translucency and glow are achieved through inner gradient highlights (light lime → saturated lime → darker lime) and a soft outer `rgba(229,255,93,0.15)` glow at 40px blur. Never render the cube as a flat 2D square.
+### 7.11 Trust Bar
 
-### 7.6 Constellation Network Diagram
+**Role:** Social proof row
 
-**Role:** Visual showing multi-network coverage
+Horizontal row of grayscale customer logos with one-line caption at left. Logos desaturated to monochrome at 60-80% opacity. 9-12px vertical gap between logo and caption.
 
-Central Citrine Cube with 12–16 node icons arranged in a radial ring around it. Each node is a 40px circle with a dark fill, lime or white icon inside, connected to the center by thin dashed `#565656` lines. Demonstrates breadth through visual geometry rather than a list. Connect nodes with thin dashed `#565656` lines — the network topology IS the content, not decoration.
+### 7.12 Status Dot
 
-### 7.7 Node Icon Ring
+**Role:** Online indicator, success pulse
 
-**Role:** Reusable container for network/entity icons
+8px circle filled with `#4cc02b` (Lime Pulse). The **single chromatic element** in the system — appears next to live chat, active features, and system status. Use sparingly.
 
-40px circle with 1px `#2b2b2b` border on dark, or `#d6d6d6` on light. Icon centered, 20px, in lime or white. Used scattered in the hero, in constellation diagrams, and in feature illustrations.
+### 7.13 Display Headline
 
-### 7.8 Display Headline
+**Role:** Hero and major section titles
 
-**Role:** Hero and section-level titles
+Switzer 500 at 80px, line-height 1.0, letter-spacing -1.6px, color `#292929`. Or Switzer 400 at 64px, line-height 0.8, letter-spacing -0.64px. The tight leading at scale is the system's typographic signature.
 
-Neue Haas Grotesk Text 400 at 80px, line-height 0.90, letter-spacing -0.01em, `#f9f9f9` on dark, `#111111` on light. Text-transform: uppercase. The tight leading and large size make 4 lines of text fill the entire viewport. Weight 400 (not 700) is the signature choice — it whispers rather than shouts, letting the cube do the shouting.
-
-### 7.9 Section Heading
-
-**Role:** Mid-level section titles
-
-Neue Haas 500 at 24px, line-height 1.20, `#f9f9f9` on dark. Used to label secondary explanations and feature blocks.
-
-### 7.10 Body Text
+### 7.14 Body Text
 
 **Role:** Paragraph copy and descriptions
 
-Neue Haas 400 at 16px, line-height 1.50, `#f9f9f9` for primary body, `#9c9c9c` for muted/helper. Comfortable reading width max 560px within content columns.
-
-### 7.11 Feature Pill
-
-**Role:** Small utility tags highlighting capabilities
-
-Compact label: uppercase Neue Haas 500 at 10–12px with +0.032em tracking, `#e5ff5d` text, optional 4px radius background. Used in rows like `FEATURE-ONE · FEATURE-TWO · FEATURE-THREE` with a small lime dot/icon prefix.
-
-### 7.12 Logo Cloud Row
-
-**Role:** Social proof — brand marks
-
-Two centered rows of monochrome white logos on the carbon canvas. Logos at 60% opacity, `#f9f9f9` fill, evenly spaced via flex with 48px column gap. No card backgrounds — logos float directly on the dark canvas.
-
-### 7.13 Split Feature Block
-
-**Role:** Two-column explanation with text left, visual right
-
-Text column (40% width) with heading + 2 body paragraphs left-aligned. Visual column (60%) centered, containing constellation or cube illustration. 80px column gap, vertically centered. Dark background, `#f9f9f9` text.
-
-**Example implementation:**
-- Canvas: Carbon Black
-- 2-column layout (40% / 60% split, 80px gap, vertically centered)
-- Left column: heading in Neue Haas 500 at 24px, `#f9f9f9`, line-height 1.20; two body paragraphs in Neue Haas 400 at 16px, `#9c9c9c`
-- Right column: centered Citrine Cube with 12–16 node circles (40px, `#2b2b2b` fill, 1px border, 20px icon in `#e5ff5d` or `#f9f9f9`) arranged in a radial ring, each connected to the cube center by 1px dashed `#565656` lines
-
-### 7.14 Reversal Band
-
-**Role:** Light section that breaks the dark rhythm
-
-Full-width `#eeeeee` background band with large 3D Citrine Cubes floating at far left and right edges (3–4 cubes each, slight rotation, overlapping). Centered content stack: display headline at 80px `#111111`, subheading at 16px `#9c9c9c`, CTA row (dark button + ghost button). 80px top/bottom padding.
+Switzer 400 at 19px, line-height 1.4, letter-spacing -0.19px, color `#292929` primary / `#6f6f6e` muted. Max comfortable reading width 560px within content columns.
 
 ---
 
 ## 8. Imagery and Visual Language
 
-No photography anywhere. The visual language is entirely constructed from:
+Product screenshots dominate over photography. The hero features a full app interface rendered against a soft gradient backdrop of lavender, teal, and peach (decorative — not part of the design system palette). Secondary imagery is tight UI crops with no lifestyle context. No stock photography, no illustrations, no 3D renders.
 
-1. **The 3D Citrine Cube** — the brand's hero object, rendered as a translucent isometric block with internal gradient highlights and soft outer glow.
-2. **Node icons in circular frames** — arranged in constellation/ring patterns suggesting network topology.
-3. **Thin dashed connector lines** — `#565656`, 1px, connecting nodes to each other or to the cube center.
+Icons are monoline outlined at consistent stroke weight, sitting flat on circular Pebble (`#c0c0c0`) tiles. The visual narrative is entirely product-led: the interface IS the hero.
 
-The aesthetic is abstract data-visualization rather than illustrative — icons feel like terminal glyphs, not friendly illustrations. All imagery lives on pure canvas (no card containers, no rounded masks) and uses the lime accent sparingly for emphasis.
-
-**Color treatment is strictly limited:** lime for the cube and accent icons, white for everything else. Never introduce photography, gradients on non-cube elements, lifestyle imagery, or human faces. The system is abstract infrastructure, not a consumer product.
+**Color treatment is strictly limited:** graphite and stone carry all UI weight. Lime Pulse appears only as a dot or checkmark. The gradient zone is reserved for the hero product screenshot backdrop only — never applied to buttons, cards, or text.
 
 ---
 
@@ -323,23 +334,23 @@ The aesthetic is abstract data-visualization rather than illustrative — icons 
 
 ### Do
 
-- Use `#e5ff5d` (Citrine Signal) for exactly one primary action per viewport and let the Citrine Cube carry the brand mark everywhere else
-- Set display headlines at 80px Neue Haas 400, line-height 0.90, uppercase — the whisper-weight on massive type is the system's signature voice
-- Use 4px radius for all interactive elements (buttons, nav items, tags) and 12px for cards — never round buttons into pills
-- Apply +0.027 to +0.032em letter-spacing to all 10–12px uppercase utility labels to read as terminal/UI marks rather than prose
-- Break the dark rhythm with exactly one cream (`#eeeeee`) reversal band per major page — the brightness reset is the page's dramatic beat
-- Connect nodes in constellation diagrams with thin dashed `#565656` lines — the network topology IS the content, not decoration
-- Keep all imagery iconographic and monochrome (white or lime) — never introduce photography, gradients, or decorative illustrations
+- Use 200px border-radius on every button and pill — the capsule shape is non-negotiable for brand recognition
+- Set primary CTAs to `#141414` fill with white text; use the stone (`#dbdbd2`) capsule as the default for any non-purchase action
+- Keep headlines at weight 400 Switzer with -0.01em tracking at 64px and below, -0.02em at 80px display — never bold a headline above body weight
+- Use the linen canvas (`#edede8`) as the base; place white (`#ffffff`) cards on top for contrast, and step down to stone (`#dbdbd2`) for de-emphasized content
+- Apply `backdrop-filter: blur(12px)` to any panel that floats over imagery or gradient backgrounds
+- Use `#4cc02b` Lime Pulse only as a status dot or checkmark — never as a button fill, page accent, or decorative color
+- Pair the 6px base unit for inline gaps with 18px card padding and 80px section gaps to maintain comfortable density
 
 ### Don't
 
-- Do not use a second chromatic accent — the system's power comes from single-color discipline; adding blue, red, or purple destroys the signal-to-noise ratio
-- Do not set display headlines in weight 700 or 600 — the 400 weight at 80px is the signature; bolding makes it generic
-- Do not use pill-shaped (9999px) buttons — the 4px radius is sharp and architectural; pills feel consumer/cute
-- Do not place content on rounded card backgrounds with shadows — everything sits flat on the carbon canvas or the cream reversal, no nesting
-- Do not use multiple shades of lime for hover/active states — the green is binary (on/off); rely on opacity shifts and surface steps for state changes
-- Do not introduce more than one light band per page — stacking light sections dilutes the reversal's impact
-- Do not use photography, lifestyle imagery, or human faces — the system is abstract infrastructure, not a consumer product
+- Do not introduce a brand-colored CTA — the system is intentionally achromatic; colored buttons break the architectural language
+- Do not use bold (600+) on headlines — weight 400 at display sizes is the signature; heavier weights belong in buttons and badges only
+- Do not stack more than three surface tones in one screen (canvas → white → stone); the palette is rationed to preserve warmth
+- Do not use drop shadows as decoration — if depth is needed, shift surface tone from white to stone to graphite instead
+- Do not apply sharp corners to feature cards or panels — 12px is the floor for content surfaces; only consent dialogs may use 3.75px
+- Do not add gradients to UI elements — the gradient zone is reserved for the hero product screenshot backdrop only
+- Do not use letter-spacing wider than -0.01em on body copy; positive tracking breaks the tight architectural feel
 
 ---
 
@@ -347,376 +358,410 @@ The aesthetic is abstract data-visualization rather than illustrative — icons 
 
 | Role | Value |
 |------|-------|
-| Canvas (page base) | `#111111` (Carbon Black) |
-| Surface elevated | `#2b2b2b` (Graphite) |
-| Text primary | `#f9f9f9` (Bone White) |
-| Text muted | `#9c9c9c` (Stone) |
-| Border on dark cards | `#d6d6d6` (Chalk) |
-| Hairline borders | `#9c9c9c` (Stone) |
-| Brand accent / primary action | `#e5ff5d` (Citrine Signal) |
-| Reversal light section | `#eeeeee` (Cream Paper) |
-| Connector lines / dividers | `#565656` (Smoke) |
+| Canvas (page base) | `#edede8` (Linen Canvas) |
+| Card surface | `#ffffff` (Frosted White) |
+| Secondary surface | `#dbdbd2` (Warm Stone) |
+| Icon tile | `#c0c0c0` (Pebble) |
+| Text primary | `#292929` (Charcoal Body) |
+| Text secondary | `#6f6f6e` (Slate Caption) |
+| Text nav / subdued | `#353535` (Iron Nav) |
+| Text muted | `#8f8f8e` (Ash Subheading) |
+| Hairline border | `#0000001f` (~8% black) |
+| Border strong | `#000000` (Onyx Border) |
+| Primary CTA fill | `#141414` (Graphite Ink) |
+| Accent (status only) | `#4cc02b` (Lime Pulse) |
+| Divider / hover hint | `#d0d0c8` (Quartz) |
 
 ---
 
-## 11. Implementation Reference
+## 11. Agent Prompt Guide
 
-### 11.1 CSS Custom Properties (`variables.css`)
+### Quick Component Recipes
+
+**Hero Section:**
+Linen canvas (`#edede8`) background, centered max-width 1200px. Display headline at 80px Switzer weight 500, color `#292929`, letter-spacing -1.6px. Sub-headline at 45px weight 400, color `#292929`. Body description at 19px weight 400, color `#6f6f6e`, line-height 1.4. Two CTAs centered: dark pill (`#141414` fill, white text, 200px radius, `0 18px` padding, 16px Switzer 400) followed by stone pill (`#dbdbd2` fill, `#292929` text, 200px radius, `0 24px` padding).
+
+**Primary Action Button:**
+`#141414` background, `#ffffff` text, 200px radius, compact pill padding `0 18px`. Switzer 400 at 16px.
+
+**Feature Card:**
+White surface (`#ffffff`), 12px radius, 18px padding, no shadow. Optional 1px `#0000001f` border. Heading at 27px Switzer 400 in `#292929`. Body text at 16px Switzer 400 in `#6f6f6e`, line-height 1.5. Optional circular accent tile (background `#c0c0c0`, 50% radius, 40px diameter) at top of card containing an outlined icon in `#353535`.
+
+**Floating Chat Widget:**
+Glass panel (`rgba(255,255,255,0.7)` with `backdrop-filter: blur(12px)`), 6px radius, 18px padding, shadow `rgba(0,0,0,0.3) 0 32px 68px 0`. Header text at 16px Switzer 400 in `#292929`. Status indicator: 8px Lime Pulse (`#4cc02b`) circle to the left of any "online" label. Position fixed bottom-right.
+
+**Navigation Bar:**
+Transparent background over linen canvas, height 60px, max-width 1200px centered. Logo at left in `#292929` at 16px Switzer 500. Center nav links at 14px Switzer 400 in `#353535` with 24px horizontal gap. Right cluster: Login link in `#353535` + dark pill CTA (`#141414` fill, white text, 200px radius, `0 18px` padding).
+
+---
+
+## 12. Implementation Reference
+
+### 12.1 CSS Custom Properties (`variables.css`)
 
 Full `:root` variable block for standard CSS usage:
 
 ```css
 :root {
   /* Colors */
-  --color-citrine-signal: #e5ff5d;
-  --color-carbon-black: #111111;
-  --color-bone-white: #f9f9f9;
-  --color-graphite: #2b2b2b;
-  --color-ash: #6e6e6e;
-  --color-stone: #9c9c9c;
-  --color-smoke: #565656;
-  --color-chalk: #d6d6d6;
-  --color-cream-paper: #eeeeee;
-  --color-pure-black: #000000;
-  --color-sand: #b7b3a2;
+  --color-linen-canvas: #edede8;
+  --color-frosted-white: #ffffff;
+  --color-warm-stone: #dbdbd2;
+  --color-pebble: #c0c0c0;
+  --color-graphite-ink: #141414;
+  --color-charcoal-body: #292929;
+  --color-slate-caption: #6f6f6e;
+  --color-ash-subheading: #8f8f8e;
+  --color-iron-nav: #353535;
+  --color-onyx-border: #000000;
+  --color-quartz: #d0d0c8;
+  --color-lime-pulse: #4cc02b;
 
   /* Typography — Font Families */
-  --font-neue-haas-grotesk-text: 'Neue Haas Grotesk Text', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-switzer: 'Switzer', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-system-ui: 'system-ui', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans-serif: 'sans-serif', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   /* Typography — Scale */
-  --text-utility-label: 10px;
-  --leading-utility-label: 1.5;
-  --tracking-utility-label: 0.32px;
-  --text-caption: 12px;
+  --text-small: 12px;
+  --leading-small: 1.77;
+  --text-caption: 14px;
   --leading-caption: 1.5;
-  --tracking-caption: 0.24px;
-  --text-body-sm: 14px;
+  --text-body-sm: 16px;
   --leading-body-sm: 1.5;
-  --text-body: 16px;
-  --leading-body: 1.5;
-  --text-subhead: 20px;
-  --leading-subhead: 1.3;
-  --text-heading-sm: 24px;
-  --leading-heading-sm: 1.2;
-  --tracking-heading-sm: -0.24px;
-  --text-heading: 48px;
-  --leading-heading: 1.1;
-  --tracking-heading: -0.48px;
+  --text-body: 19px;
+  --leading-body: 1.4;
+  --tracking-body: -0.19px;
+  --text-body-lg: 23px;
+  --leading-body-lg: 1.35;
+  --tracking-body-lg: -0.23px;
+  --text-subheading: 27px;
+  --leading-subheading: 1.3;
+  --tracking-subheading: -0.27px;
+  --text-heading-sm: 32px;
+  --leading-heading-sm: 1.3;
+  --tracking-heading-sm: -0.32px;
+  --text-heading: 45px;
+  --leading-heading: 1.2;
+  --tracking-heading: -0.45px;
+  --text-heading-lg: 64px;
+  --leading-heading-lg: 0.8;
+  --tracking-heading-lg: -0.64px;
   --text-display: 80px;
-  --leading-display: 0.9;
-  --tracking-display: -0.8px;
+  --leading-display: 1;
+  --tracking-display: -1.6px;
 
   /* Typography — Weights */
   --font-weight-regular: 400;
   --font-weight-medium: 500;
+  --font-weight-semibold: 600;
 
   /* Spacing */
-  --spacing-unit: 8px;
-  --spacing-8: 8px;
-  --spacing-16: 16px;
+  --spacing-unit: 6px;
+  --spacing-6: 6px;
+  --spacing-12: 12px;
+  --spacing-18: 18px;
   --spacing-24: 24px;
-  --spacing-32: 32px;
-  --spacing-40: 40px;
+  --spacing-36: 36px;
   --spacing-48: 48px;
-  --spacing-64: 64px;
-  --spacing-80: 80px;
+  --spacing-60: 60px;
+  --spacing-72: 72px;
+  --spacing-84: 84px;
   --spacing-96: 96px;
-  --spacing-128: 128px;
-  --spacing-144: 144px;
-  --spacing-192: 192px;
+  --spacing-138: 138px;
 
   /* Layout */
-  --page-max-width: 1280px;
+  --page-max-width: 1200px;
   --section-gap: 80px;
-  --card-padding: 24-32px;
-  --element-gap: 16-24px;
+  --card-padding: 18px;
+  --element-gap: 9px;
 
   /* Border Radius */
-  --radius-md: 4px;
-  --radius-lg: 8px;
+  --radius-md: 3.75px;
+  --radius-md-2: 6px;
   --radius-xl: 12px;
-  --radius-2xl: 20px;
-  --radius-full: 1440px;
+  --radius-3xl: 30px;
+  --radius-full: 48px;
+  --radius-full-2: 200px;
+  --radius-full-3: 9999px;
 
   /* Named Radii */
-  --radius-nav: 8px;
   --radius-cards: 12px;
-  --radius-pills: 9999px;
-  --radius-buttons: 4px;
-  --radius-decorative: 20px;
+  --radius-pills: 200px;
+  --radius-avatars: 9999px;
+  --radius-buttons: 200px;
+  --radius-innertiles: 6px;
+  --radius-smallelements: 3.75px;
+
+  /* Shadows */
+  --shadow-xl: rgba(0, 0, 0, 0.3) 0px 32px 68px 0px;
+  --shadow-xl-2: rgba(16, 24, 40, 0.12) 0px 18px 55px 0px;
 
   /* Surfaces */
-  --surface-carbon-canvas: #111111;
-  --surface-graphite-panel: #2b2b2b;
-  --surface-ash-plate: #6e6e6e;
-  --surface-cream-reversal: #eeeeee;
+  --surface-linen-canvas: #edede8;
+  --surface-frosted-white: #ffffff;
+  --surface-warm-stone: #dbdbd2;
+  --surface-glass-overlay: #ffffffb3;
+  --surface-graphite: #141414;
 }
 ```
 
-### 11.2 Tailwind v4 (`theme.css`)
+### 12.2 Tailwind v4 (`theme.css`)
 
 Full `@theme` block for Tailwind v4 usage:
 
 ```css
 @theme {
   /* Colors */
-  --color-citrine-signal: #e5ff5d;
-  --color-carbon-black: #111111;
-  --color-bone-white: #f9f9f9;
-  --color-graphite: #2b2b2b;
-  --color-ash: #6e6e6e;
-  --color-stone: #9c9c9c;
-  --color-smoke: #565656;
-  --color-chalk: #d6d6d6;
-  --color-cream-paper: #eeeeee;
-  --color-pure-black: #000000;
-  --color-sand: #b7b3a2;
+  --color-linen-canvas: #edede8;
+  --color-frosted-white: #ffffff;
+  --color-warm-stone: #dbdbd2;
+  --color-pebble: #c0c0c0;
+  --color-graphite-ink: #141414;
+  --color-charcoal-body: #292929;
+  --color-slate-caption: #6f6f6e;
+  --color-ash-subheading: #8f8f8e;
+  --color-iron-nav: #353535;
+  --color-onyx-border: #000000;
+  --color-quartz: #d0d0c8;
+  --color-lime-pulse: #4cc02b;
 
   /* Typography */
-  --font-neue-haas-grotesk-text: 'Neue Haas Grotesk Text', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-switzer: 'Switzer', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-system-ui: 'system-ui', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans-serif: 'sans-serif', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   /* Typography — Scale */
-  --text-utility-label: 10px;
-  --leading-utility-label: 1.5;
-  --tracking-utility-label: 0.32px;
-  --text-caption: 12px;
+  --text-small: 12px;
+  --leading-small: 1.77;
+  --text-caption: 14px;
   --leading-caption: 1.5;
-  --tracking-caption: 0.24px;
-  --text-body-sm: 14px;
+  --text-body-sm: 16px;
   --leading-body-sm: 1.5;
-  --text-body: 16px;
-  --leading-body: 1.5;
-  --text-subhead: 20px;
-  --leading-subhead: 1.3;
-  --text-heading-sm: 24px;
-  --leading-heading-sm: 1.2;
-  --tracking-heading-sm: -0.24px;
-  --text-heading: 48px;
-  --leading-heading: 1.1;
-  --tracking-heading: -0.48px;
+  --text-body: 19px;
+  --leading-body: 1.4;
+  --tracking-body: -0.19px;
+  --text-body-lg: 23px;
+  --leading-body-lg: 1.35;
+  --tracking-body-lg: -0.23px;
+  --text-subheading: 27px;
+  --leading-subheading: 1.3;
+  --tracking-subheading: -0.27px;
+  --text-heading-sm: 32px;
+  --leading-heading-sm: 1.3;
+  --tracking-heading-sm: -0.32px;
+  --text-heading: 45px;
+  --leading-heading: 1.2;
+  --tracking-heading: -0.45px;
+  --text-heading-lg: 64px;
+  --leading-heading-lg: 0.8;
+  --tracking-heading-lg: -0.64px;
   --text-display: 80px;
-  --leading-display: 0.9;
-  --tracking-display: -0.8px;
+  --leading-display: 1;
+  --tracking-display: -1.6px;
 
   /* Spacing */
-  --spacing-8: 8px;
-  --spacing-16: 16px;
+  --spacing-6: 6px;
+  --spacing-12: 12px;
+  --spacing-18: 18px;
   --spacing-24: 24px;
-  --spacing-32: 32px;
-  --spacing-40: 40px;
+  --spacing-36: 36px;
   --spacing-48: 48px;
-  --spacing-64: 64px;
-  --spacing-80: 80px;
+  --spacing-60: 60px;
+  --spacing-72: 72px;
+  --spacing-84: 84px;
   --spacing-96: 96px;
-  --spacing-128: 128px;
-  --spacing-144: 144px;
-  --spacing-192: 192px;
+  --spacing-138: 138px;
 
   /* Border Radius */
-  --radius-md: 4px;
-  --radius-lg: 8px;
+  --radius-md: 3.75px;
+  --radius-md-2: 6px;
   --radius-xl: 12px;
-  --radius-2xl: 20px;
-  --radius-full: 1440px;
+  --radius-3xl: 30px;
+  --radius-full: 48px;
+  --radius-full-2: 200px;
+  --radius-full-3: 9999px;
+
+  /* Shadows */
+  --shadow-xl: rgba(0, 0, 0, 0.3) 0px 32px 68px 0px;
+  --shadow-xl-2: rgba(16, 24, 40, 0.12) 0px 18px 55px 0px;
 }
 ```
 
-### 11.3 Design Tokens JSON (`tokens.json`)
+### 12.3 Design Tokens JSON (`tokens.json`)
 
 Full W3C Design Token format for use with Style Dictionary, Theo, or Tokens Studio:
 
 ```json
 {
   "color": {
-    "citrine-signal": {
-      "$value": "#e5ff5d",
+    "linen-canvas": {
+      "$value": "#edede8",
       "$type": "color",
-      "$description": "Citrine Signal — Primary action buttons, brand cube fills, accent icon strokes, decorative 3D cubes, featured logo marks — the single chromatic voice of the system"
+      "$description": "Linen Canvas — Page background, section surfaces — warm off-white that pushes the whole system toward paper rather than screen"
     },
-    "carbon-black": {
-      "$value": "#111111",
+    "frosted-white": {
+      "$value": "#ffffff",
       "$type": "color",
-      "$description": "Carbon Black — Page canvas, primary text on light sections, dominant border color, button fills on reversed (light) sections"
+      "$description": "Frosted White — Card surfaces, elevated panels, glass overlays — clean white floats above the linen canvas for primary content"
     },
-    "bone-white": {
-      "$value": "#f9f9f9",
+    "warm-stone": {
+      "$value": "#dbdbd2",
       "$type": "color",
-      "$description": "Bone White — Primary text on dark canvas, nav and body text, light icon fills, ghost button text"
+      "$description": "Warm Stone — Secondary card fills, secondary button backgrounds, accent surface — sage-tinted beige gives neutral elements warmth without becoming chromatic"
     },
-    "graphite": {
-      "$value": "#2b2b2b",
+    "pebble": {
+      "$value": "#c0c0c0",
       "$type": "color",
-      "$description": "Graphite — Elevated surface above carbon, secondary panels, darker card variants"
+      "$description": "Pebble — Circular accent tiles, muted card backgrounds — cool gray that sits one step back from stone for de-emphasized surfaces"
     },
-    "ash": {
-      "$value": "#6e6e6e",
+    "graphite-ink": {
+      "$value": "#141414",
       "$type": "color",
-      "$description": "Ash — Muted card surface, tertiary background layers behind content blocks"
+      "$description": "Graphite Ink — Primary action button background, dark text on light surfaces — near-black with a hair of warmth, anchors every CTA"
     },
-    "stone": {
-      "$value": "#9c9c9c",
+    "charcoal-body": {
+      "$value": "#292929",
       "$type": "color",
-      "$description": "Stone — Muted body text, secondary link text, low-priority borders, helper labels"
+      "$description": "Charcoal Body — Primary body and heading text — readable but softer than pure black, keeps long-form copy from feeling harsh"
     },
-    "smoke": {
-      "$value": "#565656",
+    "slate-caption": {
+      "$value": "#6f6f6e",
       "$type": "color",
-      "$description": "Smoke — Dividers, subtle borders, decorative strokes in illustrations"
+      "$description": "Slate Caption — Secondary body, helper text, descriptive copy — carries the most volume of any text color"
     },
-    "chalk": {
-      "$value": "#d6d6d6",
+    "ash-subheading": {
+      "$value": "#8f8f8e",
       "$type": "color",
-      "$description": "Chalk — Card borders on dark sections, hairline dividers between content blocks"
+      "$description": "Ash Subheading — Subtle labels, muted headings, decorative type — sits between caption and hairline"
     },
-    "cream-paper": {
-      "$value": "#eeeeee",
+    "iron-nav": {
+      "$value": "#353535",
       "$type": "color",
-      "$description": "Cream Paper — Light section background — the single warm reversal that breaks the dark rhythm"
+      "$description": "Iron Nav — Secondary body text, navigation labels, and subdued headings. Do not promote it to the primary CTA color"
     },
-    "pure-black": {
+    "onyx-border": {
       "$value": "#000000",
       "$type": "color",
-      "$description": "Pure Black — Maximum contrast text, logo silhouettes, hard-edge decorative fills"
+      "$description": "Onyx Border — Hairline borders, strong dividers, selected-state outlines — used at 1-2px to outline cards, buttons, and focus rings"
     },
-    "sand": {
-      "$value": "#b7b3a2",
+    "quartz": {
+      "$value": "#d0d0c8",
       "$type": "color",
-      "$description": "Sand — Warm-tinted decorative fills, illustration accents — the only chromatic neutral"
+      "$description": "Quartz — Quietest surface tint, reserved for low-contrast dividers and hover-state hints"
+    },
+    "lime-pulse": {
+      "$value": "#4cc02b",
+      "$type": "color",
+      "$description": "Lime Pulse — Green wash for highlight backgrounds, decorative bands, and soft emphasis behind content. Use as a supporting accent, not as a status color"
     }
   },
   "font": {
-    "neue-haas-grotesk-text": {
-      "$value": "Neue Haas Grotesk Text",
+    "switzer": {
+      "$value": "Switzer",
       "$type": "fontFamily",
-      "$description": "Sole typeface across the entire system. Weight 400 carries body, nav, and most UI; weight 500 reserved for emphasized labels and button text. Display headlines at 80px with 0.90 line-height create the signature monolithic rows. Small labels (10–12px) use positive tracking (+0.020 to +0.032em) to read as uppercase utility marks. The humanist geometry of Haas Grotesk — slightly humanist terminals, even stroke contrast — gives the dark interface a warm, editorial quality rather than feeling like a terminal."
+      "$description": "Primary typeface for all UI, body, headings, and buttons. Weight 400 dominates even at display sizes — headlines whisper rather than shout, which gives the brand authority through restraint. The Minor Third scale (1.2) is unusually compressed for a SaaS site, so sizes cluster more tightly than a Major Third or Perfect Fourth system would produce."
+    },
+    "system-ui": {
+      "$value": "system-ui",
+      "$type": "fontFamily",
+      "$description": "Icon-internal text and OS-native labels — minimal usage, mostly decorative"
+    },
+    "sans-serif": {
+      "$value": "sans-serif",
+      "$type": "fontFamily",
+      "$description": "sans-serif — detected in extracted data but not described by AI"
     }
   },
   "typography": {
-    "xs": {
-      "$value": { "fontFamily": "Neue Haas Grotesk Text", "fontSize": "10px", "fontWeight": 500, "lineHeight": 1.3 },
-      "$type": "typography",
-      "$description": "Typography step xs at 10px"
-    },
-    "xs-2": {
-      "$value": { "fontFamily": "Neue Haas Grotesk Text", "fontSize": "10px", "fontWeight": 500, "lineHeight": 1 },
-      "$type": "typography",
-      "$description": "Typography step xs-2 at 10px"
-    },
-    "xs-3": {
-      "$value": { "fontFamily": "Neue Haas Grotesk Text", "fontSize": "10px", "fontWeight": 400, "lineHeight": 2.08 },
-      "$type": "typography",
-      "$description": "Typography step xs-3 at 10px"
-    },
-    "xs-4": {
-      "$value": { "fontFamily": "Neue Haas Grotesk Text", "fontSize": "12px", "fontWeight": 400, "lineHeight": 1.73 },
-      "$type": "typography",
-      "$description": "Typography step xs-4 at 12px"
-    },
-    "xs-5": {
-      "$value": { "fontFamily": "Neue Haas Grotesk Text", "fontSize": "12px", "fontWeight": 400, "lineHeight": 1.3 },
-      "$type": "typography",
-      "$description": "Typography step xs-5 at 12px"
-    },
-    "base": {
-      "$value": { "fontFamily": "Neue Haas Grotesk Text", "fontSize": "16px", "fontWeight": 400, "lineHeight": 1.3 },
-      "$type": "typography",
-      "$description": "Typography step base at 16px"
-    },
-    "base-2": {
-      "$value": { "fontFamily": "Neue Haas Grotesk Text", "fontSize": "16px", "fontWeight": 400, "lineHeight": 1 },
-      "$type": "typography",
-      "$description": "Typography step base-2 at 16px"
-    },
-    "base-3": {
-      "$value": { "fontFamily": "Neue Haas Grotesk Text", "fontSize": "16px", "fontWeight": 500, "lineHeight": 1.3 },
-      "$type": "typography",
-      "$description": "Typography step base-3 at 16px"
-    },
-    "base-4": {
-      "$value": { "fontFamily": "Neue Haas Grotesk Text", "fontSize": "16px", "fontWeight": 400, "lineHeight": 1.2 },
-      "$type": "typography",
-      "$description": "Typography step base-4 at 16px"
-    },
-    "base-5": {
-      "$value": { "fontFamily": "Neue Haas Grotesk Text", "fontSize": "16px", "fontWeight": 400, "lineHeight": 1.3 },
-      "$type": "typography",
-      "$description": "Typography step base-5 at 16px"
-    },
-    "xl": {
-      "$value": { "fontFamily": "Neue Haas Grotesk Text", "fontSize": "20px", "fontWeight": 400, "lineHeight": 1.5 },
-      "$type": "typography",
-      "$description": "Typography step xl at 20px"
-    },
-    "2xl": {
-      "$value": { "fontFamily": "Neue Haas Grotesk Text", "fontSize": "24px", "fontWeight": 400, "lineHeight": 1.2 },
-      "$type": "typography",
-      "$description": "Typography step 2xl at 24px"
-    },
-    "2xl-2": {
-      "$value": { "fontFamily": "Neue Haas Grotesk Text", "fontSize": "24px", "fontWeight": 400, "lineHeight": 1.2 },
-      "$type": "typography",
-      "$description": "Typography step 2xl-2 at 24px"
-    },
-    "5xl": {
-      "$value": { "fontFamily": "Neue Haas Grotesk Text", "fontSize": "80px", "fontWeight": 400, "lineHeight": 0.9 },
-      "$type": "typography",
-      "$description": "Typography step 5xl at 80px"
-    },
-    "5xl-2": {
-      "$value": { "fontFamily": "Neue Haas Grotesk Text", "fontSize": "80px", "fontWeight": 400, "lineHeight": 1 },
-      "$type": "typography",
-      "$description": "Typography step 5xl-2 at 80px"
-    }
+    "xs": { "$value": { "fontFamily": "Switzer", "fontSize": "12px", "fontWeight": 400, "lineHeight": 1.77 }, "$type": "typography", "$description": "Typography step xs at 12px" },
+    "sm": { "$value": { "fontFamily": "Switzer", "fontSize": "14px", "fontWeight": 400, "lineHeight": 1.5 }, "$type": "typography", "$description": "Typography step sm at 14px" },
+    "sm-2": { "$value": { "fontFamily": "Switzer", "fontSize": "14px", "fontWeight": 400, "lineHeight": 1.4 }, "$type": "typography", "$description": "Typography step sm-2 at 14px" },
+    "base": { "$value": { "fontFamily": "sans-serif", "fontSize": "15px", "fontWeight": 400, "lineHeight": 1.6 }, "$type": "typography", "$description": "Typography step base at 15px" },
+    "base-2": { "$value": { "fontFamily": "sans-serif", "fontSize": "15px", "fontWeight": 600, "lineHeight": 1.6 }, "$type": "typography", "$description": "Typography step base-2 at 15px" },
+    "base-3": { "$value": { "fontFamily": "sans-serif", "fontSize": "15px", "fontWeight": 600, "lineHeight": 1.6 }, "$type": "typography", "$description": "Typography step base-3 at 15px" },
+    "base-4": { "$value": { "fontFamily": "Switzer", "fontSize": "16px", "fontWeight": 400, "lineHeight": 1.5 }, "$type": "typography", "$description": "Typography step base-4 at 16px" },
+    "base-5": { "$value": { "fontFamily": "Switzer", "fontSize": "16px", "fontWeight": 600, "lineHeight": 1.5 }, "$type": "typography", "$description": "Typography step base-5 at 16px" },
+    "base-6": { "$value": { "fontFamily": "system-ui", "fontSize": "16px", "fontWeight": 400, "lineHeight": 1 }, "$type": "typography", "$description": "Typography step base-6 at 16px" },
+    "lg": { "$value": { "fontFamily": "Switzer", "fontSize": "17px", "fontWeight": 400, "lineHeight": 1.4 }, "$type": "typography", "$description": "Typography step lg at 17px" },
+    "lg-2": { "$value": { "fontFamily": "Switzer", "fontSize": "19px", "fontWeight": 400, "lineHeight": 1.4 }, "$type": "typography", "$description": "Typography step lg-2 at 19px" },
+    "xl": { "$value": { "fontFamily": "Switzer", "fontSize": "23px", "fontWeight": 400, "lineHeight": 1.35 }, "$type": "typography", "$description": "Typography step xl at 23px" },
+    "2xl": { "$value": { "fontFamily": "Switzer", "fontSize": "27px", "fontWeight": 400, "lineHeight": 1.3 }, "$type": "typography", "$description": "Typography step 2xl at 27px" },
+    "3xl": { "$value": { "fontFamily": "Switzer", "fontSize": "32px", "fontWeight": 400, "lineHeight": 1.3 }, "$type": "typography", "$description": "Typography step 3xl at 32px" },
+    "4xl": { "$value": { "fontFamily": "Switzer", "fontSize": "38px", "fontWeight": 400, "lineHeight": 1.3 }, "$type": "typography", "$description": "Typography step 4xl at 38px" },
+    "4xl-2": { "$value": { "fontFamily": "Switzer", "fontSize": "40px", "fontWeight": 400, "lineHeight": 0.6 }, "$type": "typography", "$description": "Typography step 4xl-2 at 40px" },
+    "4xl-3": { "$value": { "fontFamily": "Switzer", "fontSize": "45px", "fontWeight": 400, "lineHeight": 1.2 }, "$type": "typography", "$description": "Typography step 4xl-3 at 45px" },
+    "5xl": { "$value": { "fontFamily": "Switzer", "fontSize": "64px", "fontWeight": 400, "lineHeight": 0.8 }, "$type": "typography", "$description": "Typography step 5xl at 64px" },
+    "5xl-2": { "$value": { "fontFamily": "Switzer", "fontSize": "64px", "fontWeight": 400, "lineHeight": 1.1 }, "$type": "typography", "$description": "Typography step 5xl-2 at 64px" },
+    "5xl-3": { "$value": { "fontFamily": "Switzer", "fontSize": "80px", "fontWeight": 500, "lineHeight": 1 }, "$type": "typography", "$description": "Typography step 5xl-3 at 80px" }
   },
   "spacing": {
-    "unit": { "$value": "8px", "$type": "dimension", "$description": "Base spacing unit" },
-    "8": { "$value": "8px", "$type": "dimension", "$description": "Spacing 8px" },
-    "16": { "$value": "16px", "$type": "dimension", "$description": "Spacing 16px" },
+    "unit": { "$value": "6px", "$type": "dimension", "$description": "Base spacing unit" },
+    "6": { "$value": "6px", "$type": "dimension", "$description": "Spacing 6px" },
+    "12": { "$value": "12px", "$type": "dimension", "$description": "Spacing 12px" },
+    "18": { "$value": "18px", "$type": "dimension", "$description": "Spacing 18px" },
     "24": { "$value": "24px", "$type": "dimension", "$description": "Spacing 24px" },
-    "32": { "$value": "32px", "$type": "dimension", "$description": "Spacing 32px" },
-    "40": { "$value": "40px", "$type": "dimension", "$description": "Spacing 40px" },
+    "36": { "$value": "36px", "$type": "dimension", "$description": "Spacing 36px" },
     "48": { "$value": "48px", "$type": "dimension", "$description": "Spacing 48px" },
-    "64": { "$value": "64px", "$type": "dimension", "$description": "Spacing 64px" },
-    "80": { "$value": "80px", "$type": "dimension", "$description": "Spacing 80px" },
+    "60": { "$value": "60px", "$type": "dimension", "$description": "Spacing 60px" },
+    "72": { "$value": "72px", "$type": "dimension", "$description": "Spacing 72px" },
+    "84": { "$value": "84px", "$type": "dimension", "$description": "Spacing 84px" },
     "96": { "$value": "96px", "$type": "dimension", "$description": "Spacing 96px" },
-    "128": { "$value": "128px", "$type": "dimension", "$description": "Spacing 128px" },
-    "144": { "$value": "144px", "$type": "dimension", "$description": "Spacing 144px" },
-    "192": { "$value": "192px", "$type": "dimension", "$description": "Spacing 192px" }
+    "138": { "$value": "138px", "$type": "dimension", "$description": "Spacing 138px" }
   },
   "radius": {
-    "md": { "$value": "4px", "$type": "dimension", "$description": "Border radius md — buttons" },
-    "lg": { "$value": "8px", "$type": "dimension", "$description": "Border radius lg — nav" },
+    "md": { "$value": "3.75px", "$type": "dimension", "$description": "Border radius md — small elements, consent dialogs" },
+    "md-2": { "$value": "6px", "$type": "dimension", "$description": "Border radius md-2 — inner tiles" },
     "xl": { "$value": "12px", "$type": "dimension", "$description": "Border radius xl — cards" },
-    "2xl": { "$value": "20px", "$type": "dimension", "$description": "Border radius 2xl — decorative" },
-    "full": { "$value": "1440px", "$type": "dimension", "$description": "Border radius full — pills" }
+    "3xl": { "$value": "30px", "$type": "dimension", "$description": "Border radius 3xl" },
+    "full": { "$value": "48px", "$type": "dimension", "$description": "Border radius full" },
+    "full-2": { "$value": "200px", "$type": "dimension", "$description": "Border radius full-2 — buttons and pills" },
+    "full-3": { "$value": "9999px", "$type": "dimension", "$description": "Border radius full-3 — avatars" }
+  },
+  "shadow": {
+    "xl": {
+      "$value": "rgba(0, 0, 0, 0.3) 0px 32px 68px 0px",
+      "$type": "shadow",
+      "$description": "Shadow elevation xl — floating chat widget"
+    },
+    "xl-2": {
+      "$value": "rgba(16, 24, 40, 0.12) 0px 18px 55px 0px",
+      "$type": "shadow",
+      "$description": "Shadow elevation xl-2 — glass overlay panel"
+    }
   },
   "surface": {
-    "carbon-canvas": {
-      "$value": "#111111",
+    "linen-canvas": {
+      "$value": "#edede8",
       "$type": "color",
-      "$description": "Surface level 1: Page base — majority of the experience lives here"
+      "$description": "Surface level 0: Page background — warm off-white that warms the entire system"
     },
-    "graphite-panel": {
-      "$value": "#2b2b2b",
+    "frosted-white": {
+      "$value": "#ffffff",
       "$type": "color",
-      "$description": "Surface level 2: Elevated cards and panels sitting on the carbon canvas"
+      "$description": "Surface level 1: Primary card surface, feature panels, elevated content blocks"
     },
-    "ash-plate": {
-      "$value": "#6e6e6e",
+    "warm-stone": {
+      "$value": "#dbdbd2",
       "$type": "color",
-      "$description": "Surface level 3: Muted secondary surfaces, logo cloud backgrounds"
+      "$description": "Surface level 2: Secondary surface for pricing cards, de-emphasized panels, button backgrounds"
     },
-    "cream-reversal": {
-      "$value": "#eeeeee",
+    "glass-overlay": {
+      "$value": "#ffffffb3",
       "$type": "color",
-      "$description": "Surface level 4: Light section — the single bright band that resets the eye"
+      "$description": "Surface level 3: Floating panels, chat widgets, sticky elements — paired with backdrop blur(12px)"
+    },
+    "graphite": {
+      "$value": "#141414",
+      "$type": "color",
+      "$description": "Surface level 4: Inverted surface — dark CTAs, emphasis blocks, cookie consent panels"
     }
   },
   "$extensions": {
     "com.refero.extraction": {
-      "url": "https://www.codex.io",
-      "siteName": "Codex.io",
-      "extractedAt": "2026-06-03T22:38:16.616Z",
+      "url": "https://gleap.io",
+      "siteName": "Gleap",
+      "extractedAt": "2026-07-03T03:13:43.210Z",
       "variant": "extended"
     }
   }
@@ -725,18 +770,18 @@ Full W3C Design Token format for use with Style Dictionary, Theo, or Tokens Stud
 
 ---
 
-## 12. Similar References
+## 13. Similar References
 
-Design references sharing the same visual grammar — dark canvas, single saturated accent, humanist sans typography, and network-topology visuals:
+Design references sharing the same visual grammar — warm paper canvas, single chromatic accent, weight-400 headlines, and capsule CTAs:
 
 | Brand | Similarity |
 |-------|------------|
-| Helius | Same dark canvas API positioning with single vivid accent color and constellation-style diagrams |
-| Alchemy | Dark infrastructure API with restrained typography, monochrome surfaces, minimal accent discipline |
-| Chainbase | Similar dark-mode layout, single neon accent, network-topology visualizations |
-| Messari | Dark data platform with humanist sans typography, uppercase utility labels, monochrome logo clouds |
-| Privy | Dark canvas, single saturated accent for CTAs, minimal decorative imagery |
+| Linear | Same weight-400-at-display-sizes typography discipline and matte black pill-button vocabulary; both reject colored CTAs in favor of monochrome depth |
+| Vercel | Similar warm off-white canvas with tight tracking and pill-shaped controls; both treat color as rationed punctuation rather than decoration |
+| Resend | Shared architectural flatness — warm neutral surfaces, minimal shadows, product-screenshot-as-hero imagery, and weight 400 headlines |
+| Frame.io | Same dual-pill CTA pairing (dark primary + light secondary) and warm-paper product aesthetic with desaturated supporting imagery |
+| Stripe (docs) | Identical approach to typography tracking (-0.01em at large sizes) and the same rationed chromatic palette with one accent green for status |
 
 ---
 
-*Source files: `DESIGN (6).md`, `variables (4).css`, `theme (4).css`, `tokens (4).json`*
+*Source files: `DESIGN.md`, `variables.css`, `theme.css`, `tokens.json`*
