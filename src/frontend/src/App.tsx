@@ -63,7 +63,7 @@ export default function App() {
 
   // Memory negotiation card
   const [negCardOpen, setNegCardOpen] = useState(false);
-  const [negCardObs]                  = useState('I noticed a pattern in your session.');
+  const [negCardObs,  setNegCardObs]  = useState('I noticed a pattern in your session.');
 
   // Voice
   const [transcript, setTranscript] = useState('');
@@ -105,17 +105,29 @@ export default function App() {
 
       es.onmessage = (e) => {
         try {
-          const payload = JSON.parse(e.data as string) as { type: string; data?: unknown };
+          const payload = JSON.parse(e.data as string) as { type: string; data?: unknown; observation?: string };
           if (payload.type === 'step' && payload.data) {
             setRibbonSteps(prev => [...prev, payload.data as ReasoningStep]);
-          } else if (payload.type === 'done' || payload.type === 'compilation') {
+          } else if (payload.type === 'compilation') {
+            // Nodes are NOT in DB yet — backend writes AFTER emitting this event.
+            // Do NOT reload canvas here. Wait for 'done'.
+            setPillState('working'); // keep working indicator until done
+          } else if (payload.type === 'memory_card_trigger') {
+            // Fix 5: Show Memory Negotiation Card after compilation
+            if (payload.observation) {
+              setNegCardObs(payload.observation as string);
+              setNegCardOpen(true);
+            }
+          } else if (payload.type === 'done') {
+            // Nodes are now persisted in DB — safe to reload canvas
             es.close();
+            sseRef.current = null;
             setIsCompiling(false);
             setPillState('ready');
-            // Reload canvas nodes after compilation
             window.dispatchEvent(new CustomEvent('kleos:reload-canvas'));
           } else if (payload.type === 'error') {
             es.close();
+            sseRef.current = null;
             setDropError('Compilation failed — check backend logs.');
             setIsCompiling(false);
             setPillState('ready');
@@ -147,13 +159,23 @@ export default function App() {
 
   const { startVoice, stopVoice, status: voiceStatus } = useVoice({
     canvasId: canvasId ?? '',
-    onToolCall: (_tool, _args, _result) => {
-      // Canvas updates via Supabase → re-load handled by KleosCanvas
+    onToolCall: (tool, _args, _result) => {
+      // Reload canvas whenever a tool call modifies canvas state
+      const canvasMutatingTools = new Set([
+        'create_node', 'create_edge', 'merge_nodes', 'collapse_cluster',
+        'flag_contradiction', 'create_branch',
+      ]);
+      if (canvasMutatingTools.has(tool)) {
+        // Small delay to ensure Supabase write completes before reload
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('kleos:reload-canvas'));
+        }, 600);
+      }
     },
     onTranscript: (text, _isFinal) => setTranscript(text),
     onStatusChange: (s) => {
-      if (s === 'listening')    setPillState('listening');
-      else if (s === 'idle')    setPillState('ready');
+      if (s === 'listening')         setPillState('listening');
+      else if (s === 'idle')         setPillState('ready');
       else if (s === 'reconnecting') setPillState('listening');
     },
   });
@@ -243,8 +265,16 @@ export default function App() {
             memory
           </button>
 
-          {/* Mode indicator */}
-          <ModeIndicator mode={mode} />
+          {/* Mode indicator — click to cycle through modes */}
+          <ModeIndicator
+            mode={mode}
+            onClick={async () => {
+              const ORDER: WorkspaceMode[] = ['analytical', 'creative', 'critical', 'strategic'];
+              const next = ORDER[(ORDER.indexOf(mode) + 1) % ORDER.length];
+              setMode(next);
+              if (canvasId) await api.put(`/api/canvas/${canvasId}/mode?mode=${next}`, {});
+            }}
+          />
 
           {/* Source filter */}
           <SourceFilter activeFilter={sourceFilter} onFilter={setSourceFilter} />

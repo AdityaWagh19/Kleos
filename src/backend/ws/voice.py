@@ -50,11 +50,16 @@ REALTIME_SESSION_CONFIG = {
         "modalities": ["text", "audio"],
         "instructions": (
             "You are the AI engine for Kleos, a spatial thinking canvas. "
-            "Translate user voice commands into tool calls. "
-            "Use create_node for new ideas, evidence, assumptions, questions. "
-            "Use create_branch when user says 'branch on X'. "
-            "Use emit_reasoning_step to narrate what you are doing. "
-            "Always set provenance_type=voice_input for nodes from voice commands. "
+            "Translate user voice commands into tool calls from the available vocabulary. "
+            "create_node: new ideas, evidence, assumptions, questions, constraints, insights, decisions. "
+            "create_branch: when user says 'branch on X' or 'explore alternative'. "
+            "merge_nodes: when user says 'merge these' or 'combine these nodes'. "
+            "collapse_cluster: when user says 'collapse this cluster' or 'summarise this group'. "
+            "create_edge: when user says 'connect X to Y' or 'X supports Y'. "
+            "flag_contradiction: when user says 'these contradict'. "
+            "propose_memory: when user expresses a recurring preference. "
+            "emit_reasoning_step: narrate what you are doing before tool calls. "
+            "Always set provenance_type=voice_input for nodes created from voice commands. "
             "Be concise in spoken responses."
         ),
         "voice": "alloy",
@@ -127,6 +132,44 @@ REALTIME_SESSION_CONFIG = {
                         "trigger": {"type": "string"},
                     },
                     "required": ["text","trigger"],
+                },
+            },
+            {
+                "type": "function", "name": "create_edge",
+                "description": "Link two existing nodes with a typed relationship",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "source_id":  {"type": "string"},
+                        "target_id":  {"type": "string"},
+                        "type":       {"type": "string", "enum": ["supports","contradicts","depends_on","derived_from"]},
+                        "confidence": {"type": "string", "enum": ["low","medium","high"]},
+                    },
+                    "required": ["source_id","target_id","type","confidence"],
+                },
+            },
+            {
+                "type": "function", "name": "merge_nodes",
+                "description": "Combine two or more nodes into a single synthesized insight node",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "node_ids":    {"type": "array", "items": {"type": "string"}},
+                        "merged_text": {"type": "string"},
+                    },
+                    "required": ["node_ids","merged_text"],
+                },
+            },
+            {
+                "type": "function", "name": "collapse_cluster",
+                "description": "Fold a cluster of nodes into a single summary node",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "cluster_id":   {"type": "string"},
+                        "summary_text": {"type": "string"},
+                    },
+                    "required": ["cluster_id","summary_text"],
                 },
             },
         ],
@@ -205,6 +248,63 @@ async def _handle_tool_call(canvas_id: str, tool_name: str, args: dict) -> dict:
     elif tool_name == "propose_memory":
         memory_id = await propose_inferred_memory(canvas_id, args["text"], args["trigger"], "voice")
         return {"success": True, "memory_id": memory_id}
+
+    elif tool_name == "create_edge":
+        edge_id = canvas_service.create_edge(
+            canvas_id, branch_id,
+            args["source_id"], args["target_id"],
+            args.get("type", "supports"), args.get("confidence", "medium"),
+        )
+        await push_sse_event(canvas_id, {"type": "edge_created", "edge_id": edge_id})
+        return {"success": True, "edge_id": edge_id}
+
+    elif tool_name == "merge_nodes":
+        # Merge: delete source nodes, create a new synthesized node
+        node_ids = args.get("node_ids", [])
+        merged_text = args.get("merged_text", "Merged node")
+        merged_id = str(uuid.uuid4())
+        sb.table("nodes").insert({
+            "id":                         merged_id,
+            "canvas_id":                  canvas_id,
+            "branch_id":                  branch_id,
+            "type":                       "insight",
+            "text":                       merged_text,
+            "confidence":                 "medium",
+            "provenance_type":            "voice_input",
+            "impact_nodes":               [],
+            "position":                   canvas_service._auto_position(0),
+            "created_by":                 "user",
+            "input_modality":             "voice",
+            "workspace_mode_at_creation": canvas_service.get_current_workspace_mode(canvas_id),
+        }).execute()
+        # Mark source nodes as archived (soft-delete)
+        for nid in node_ids:
+            sb.table("nodes").update({"cluster_id": f"merged_into_{merged_id}"}).eq("id", nid).execute()
+        log_event(canvas_id, branch_id, "merge", "user", "voice", node_ids)
+        await push_sse_event(canvas_id, {"type": "merge_done", "merged_id": merged_id})
+        return {"success": True, "merged_id": merged_id}
+
+    elif tool_name == "collapse_cluster":
+        cluster_id = args.get("cluster_id", "")
+        summary_text = args.get("summary_text", "Cluster summary")
+        summary_id = str(uuid.uuid4())
+        sb.table("nodes").insert({
+            "id":                         summary_id,
+            "canvas_id":                  canvas_id,
+            "branch_id":                  branch_id,
+            "type":                       "insight",
+            "text":                       summary_text,
+            "confidence":                 "medium",
+            "provenance_type":            "ai_inference",
+            "impact_nodes":               [],
+            "position":                   canvas_service._auto_position(0),
+            "created_by":                 "ai",
+            "input_modality":             "voice",
+            "workspace_mode_at_creation": canvas_service.get_current_workspace_mode(canvas_id),
+        }).execute()
+        log_event(canvas_id, branch_id, "merge", "ai", "voice", [summary_id])
+        await push_sse_event(canvas_id, {"type": "cluster_collapsed", "summary_id": summary_id})
+        return {"success": True, "summary_id": summary_id}
 
     return {"success": False, "error": f"Unknown tool: {tool_name}"}
 
