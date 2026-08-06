@@ -20,3 +20,4 @@ pyppeteer
 pdfkit
 authlib
 httpx
+itsdangerous
