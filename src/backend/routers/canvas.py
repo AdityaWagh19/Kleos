@@ -25,14 +25,14 @@ class CreateCanvasRequest(BaseModel):
 
 
 @router.post("/canvas")
-async def create_canvas(req: CreateCanvasRequest, user: dict | None = Depends(get_optional_user)):
+async def create_canvas(req: CreateCanvasRequest, user: dict = Depends(get_current_user)):
     sb = get_client()
     canvas_id = str(uuid.uuid4())
     branch_id = str(uuid.uuid4())
     sb.table("canvases").insert({
         "id": canvas_id,
         "workspace_mode": req.workspace_mode,
-        "user_id": user["id"] if user else None,
+        "user_id": user["id"],
     }).execute()
     sb.table("branches").insert({
         "id": branch_id,
@@ -50,14 +50,19 @@ async def list_canvases(user: dict = Depends(get_current_user)):
 
 
 @router.get("/canvas/{canvas_id}")
-async def get_canvas(canvas_id: str):
+async def get_canvas(canvas_id: str, user: dict = Depends(get_current_user)):
     sb = get_client()
     canvas  = sb.table("canvases").select("*").eq("id", canvas_id).single().execute()
+    if not canvas.data:
+        raise HTTPException(404, "Canvas not found")
+        
+    if canvas.data.get("user_id") != user["id"]:
+        raise HTTPException(403, "Not authorized to access this canvas")
+        
     nodes   = sb.table("nodes").select("*").eq("canvas_id", canvas_id).execute()
     edges   = sb.table("edges").select("*").eq("canvas_id", canvas_id).execute()
     branches = sb.table("branches").select("*").eq("canvas_id", canvas_id).execute()
-    if not canvas.data:
-        raise HTTPException(404, "Canvas not found")
+    
     return {
         "canvas":   canvas.data,
         "nodes":    nodes.data,

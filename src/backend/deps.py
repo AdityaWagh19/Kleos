@@ -34,3 +34,20 @@ async def get_optional_user(request: Request) -> dict | None:
         return await get_current_user(request)
     except HTTPException:
         return None
+
+async def verify_canvas_ownership(canvas_id: str, request: Request) -> dict:
+    """
+    Dependency to ensure the current user owns the canvas.
+    """
+    user = await get_current_user(request)
+    sb = get_supabase()
+    canvas = sb.table("canvases").select("user_id").eq("id", canvas_id).single().execute()
+    
+    if not canvas.data:
+        raise HTTPException(status_code=404, detail="Canvas not found")
+        
+    if canvas.data.get("user_id") != user["id"]:
+        raise HTTPException(status_code=403, detail="Not authorized to access this canvas")
+        
+    return user
+

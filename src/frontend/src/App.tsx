@@ -19,6 +19,7 @@ import { TextInputBar } from './components/TextInputBar';
 import { useVoice } from './hooks/useVoice';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { api } from './services/api';
+import { useParams } from 'react-router-dom';
 import type {
   WorkspaceMode, Assumption, Branch, ReasoningStep,
   ActivityEvent, ProvenanceType,
@@ -27,15 +28,17 @@ import type {
 // ─── App shell ──────────────────────────────────────────────────────────────
 
 export default function App() {
+  const { canvasId: urlCanvasId } = useParams<{ canvasId: string }>();
+  
   // Canvas lifecycle
-  const [canvasId, setCanvasId]     = useState<string | null>(null);
+  const [canvasId, setCanvasId]     = useState<string | null>(urlCanvasId || null);
   const [branchId, setBranchId]     = useState<string>('');
   const [loading,  setLoading]      = useState(true);
   const [error,    setError]        = useState<string | null>(null);
 
   // Workspace mode
   const [mode,         setMode]         = useState<WorkspaceMode>('analytical');
-  const [modeSelected, setModeSelected] = useState(false);
+  const [modeSelected, setModeSelected] = useState(true);
 
   // Canvas state
   const [hasNodes] = useState(false);
@@ -75,16 +78,28 @@ export default function App() {
   // ── Bootstrap ───────────────────────────────────────────────────────────
 
   useEffect(() => {
-    api.post<{ id: string; branch_id: string }>('/api/canvas', { workspace_mode: 'analytical' })
+    if (!urlCanvasId) {
+      setError('No canvas ID provided');
+      setLoading(false);
+      return;
+    }
+    
+    api.get<{ canvas: any, branches: Branch[] }>(`/api/canvas/${urlCanvasId}`)
       .then(res => {
-        setCanvasId(res.id);
-        setBranchId(res.branch_id);
-        setActiveBranchId(res.branch_id);
-        setBranches([{ id: res.branch_id, canvas_id: res.id, name: 'main', created_at: new Date().toISOString(), status: 'active' }]);
+        setCanvasId(res.canvas.id);
+        setMode(res.canvas.workspace_mode as WorkspaceMode);
+        
+        // Find active branch
+        const active = res.branches.find(b => b.status === 'active') || res.branches[0];
+        if (active) {
+          setBranchId(active.id);
+          setActiveBranchId(active.id);
+        }
+        setBranches(res.branches);
       })
       .catch(err => setError(String(err)))
       .finally(() => setLoading(false));
-  }, []);
+  }, [urlCanvasId]);
 
   // ── Text / file drop ─────────────────────────────────────────────────────
 

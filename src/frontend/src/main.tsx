@@ -10,6 +10,9 @@ import DocsPage from './pages/DocsPage'
 import ResearchPage from './pages/ResearchPage'
 import ContactPage from './pages/ContactPage'
 import NotFoundPage from './pages/NotFoundPage'
+import LoginPage from './pages/LoginPage'
+import DashboardPage from './pages/DashboardPage'
+import { AuthProvider } from './context/AuthContext'
 
 const router = createBrowserRouter([
   {
@@ -20,6 +23,8 @@ const router = createBrowserRouter([
       { path: 'docs', element: <DocsPage /> },
       { path: 'research', element: <ResearchPage /> },
       { path: 'contact', element: <ContactPage /> },
+      { path: 'login', element: <LoginPage /> },
+      { path: 'dashboard', element: <DashboardPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },
@@ -27,13 +32,15 @@ const router = createBrowserRouter([
     path: '/workspace',
     element: <WorkspaceLayout />,
     children: [
-      { index: true, element: <App /> },
+      { path: ':canvasId', element: <App /> },
     ],
   },
 ])
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
   </StrictMode>,
 )

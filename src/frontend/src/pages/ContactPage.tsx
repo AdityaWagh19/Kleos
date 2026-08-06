@@ -53,7 +53,7 @@ export default function ContactPage() {
 
   return (
     <div className="flex flex-col w-full max-w-[1200px] mx-auto px-6 py-[80px] min-h-[calc(100vh-200px)]">
-      <h1 className="text-[64px] font-medium leading-[1.0] tracking-[-1.6px] mb-4 text-[#292929]">
+      <h1 className="text-[64px] font-medium leading-[0.8] tracking-[-0.64px] mb-6 text-[#292929]">
         Contact
       </h1>
       <p className="text-[23px] text-[#6f6f6e] mb-12 max-w-[600px]">
@@ -118,7 +118,7 @@ export default function ContactPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="bg-[#141414] text-[#ffffff] px-6 py-3 rounded-[8px] text-[16px] font-medium hover:bg-[#292929] transition-colors disabled:opacity-50 disabled:cursor-not-allowed self-start"
+              className="bg-[#141414] text-[#ffffff] px-[24px] h-[48px] rounded-[200px] text-[16px] font-medium hover:bg-[#292929] transition-colors disabled:opacity-50 disabled:cursor-not-allowed self-start focus:outline-none focus:ring-2 focus:ring-[#000000] focus:ring-offset-2 focus:ring-offset-[#edede8]"
             >
               {isSubmitting ? 'Sending...' : 'Send Message'}
             </button>

@@ -42,10 +42,10 @@ export default function LandingPage() {
           transition={{ duration: 0.4, delay: 0.3, ease: "easeOut" }}
           className="flex items-center justify-center gap-4"
         >
-          <Link to="/workspace" className="bg-[#141414] text-[#ffffff] px-6 py-3 rounded-full text-[16px] font-medium no-underline hover:bg-[#292929] transition-colors">
-            Open Workspace
+          <Link to="/dashboard" className="bg-[#141414] text-[#ffffff] px-[24px] h-[48px] flex items-center justify-center rounded-[200px] text-[16px] font-medium no-underline hover:bg-[#292929] transition-colors focus:outline-none focus:ring-2 focus:ring-[#000000] focus:ring-offset-2 focus:ring-offset-[#edede8]">
+            Start Thinking
           </Link>
-          <Link to="/docs" className="bg-[#e4e4e0] text-[#292929] px-6 py-3 rounded-full text-[16px] font-medium no-underline hover:bg-[#d0d0c8] transition-colors">
+          <Link to="/docs" className="bg-[#dbdbd2] text-[#292929] px-[24px] h-[48px] flex items-center justify-center rounded-[200px] text-[16px] font-medium no-underline hover:bg-[#c0c0c0] transition-colors focus:outline-none focus:ring-2 focus:ring-[#000000] focus:ring-offset-2 focus:ring-offset-[#edede8]">
             Read Docs
           </Link>
         </motion.div>
@@ -105,8 +105,8 @@ export default function LandingPage() {
               <li className="flex items-center gap-2"><span className="material-symbols-outlined text-[18px] text-[#8f8f8e]">check</span> Override any assumption — only the affected subgraph recomputes</li>
               <li className="flex items-center gap-2"><span className="material-symbols-outlined text-[18px] text-[#8f8f8e]">check</span> Confidence bars — Low / Medium / High, no raw percentages</li>
             </ul>
-            <Link to="/workspace" className="inline-block bg-[#e4e4e0] text-[#292929] px-6 py-3 rounded-full text-[14px] font-medium no-underline hover:bg-[#d0d0c8] transition-colors">
-              Try it in Workspace →
+            <Link to="/docs" className="inline-flex items-center justify-center bg-[#dbdbd2] text-[#292929] px-[24px] h-[48px] rounded-[200px] text-[16px] font-medium no-underline hover:bg-[#c0c0c0] transition-colors focus:outline-none focus:ring-2 focus:ring-[#000000] focus:ring-offset-2 focus:ring-offset-[#ffffff]">
+              Read Documentation →
             </Link>
           </div>
           <div className="bg-[#dbdbd2] rounded-[16px] aspect-square flex items-center justify-center p-8 border border-[#c0c0c0]">
@@ -145,8 +145,8 @@ export default function LandingPage() {
               <li className="flex items-center gap-2"><span className="material-symbols-outlined text-[18px] text-[#8f8f8e]">check</span> Tier 2 quarantine — inferred memories never influence responses until accepted</li>
               <li className="flex items-center gap-2"><span className="material-symbols-outlined text-[18px] text-[#8f8f8e]">check</span> Session Memory Audit — explicit per-item consent ledger at session close</li>
             </ul>
-            <Link to="/workspace" className="inline-block bg-[#edede8] text-[#292929] px-6 py-3 rounded-full text-[14px] font-medium no-underline hover:bg-[#e4e4e0] transition-colors">
-              Open Workspace →
+            <Link to="/research" className="inline-flex items-center justify-center bg-[#ffffff] text-[#292929] px-[24px] h-[48px] rounded-[200px] text-[16px] font-medium no-underline border border-[#0000001f] hover:bg-[#edede8] transition-colors focus:outline-none focus:ring-2 focus:ring-[#000000] focus:ring-offset-2 focus:ring-offset-[#dbdbd2]">
+              Read the Research →
             </Link>
           </div>
         </div>

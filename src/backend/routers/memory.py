@@ -1,5 +1,5 @@
 import uuid
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from db.supabase import get_client
 from db.queries import log_event
@@ -8,6 +8,7 @@ from services.memory_service import (
     generate_session_audit,
     compute_freshness,
 )
+from deps import verify_canvas_ownership
 
 router = APIRouter()
 
@@ -17,7 +18,7 @@ router = APIRouter()
 # ---------------------------------------------------------------------------
 
 @router.get("/canvas/{canvas_id}/memory")
-async def get_memories(canvas_id: str):
+async def get_memories(canvas_id: str, user: dict = Depends(verify_canvas_ownership)):
     """
     Returns all non-archived, non-rejected memories for this canvas.
     Includes Tier 2 quarantined items (for display in Pending tab) but
@@ -62,7 +63,7 @@ class CreateMemoryRequest(BaseModel):
 
 
 @router.post("/canvas/{canvas_id}/memory")
-async def create_memory(canvas_id: str, req: CreateMemoryRequest):
+async def create_memory(canvas_id: str, req: CreateMemoryRequest, user: dict = Depends(verify_canvas_ownership)):
     sb = get_client()
     mem_id = str(uuid.uuid4())
     sb.table("memories").insert({
@@ -84,7 +85,7 @@ class UpdateMemoryRequest(BaseModel):
 
 
 @router.put("/canvas/{canvas_id}/memory/{memory_id}")
-async def update_memory(canvas_id: str, memory_id: str, req: UpdateMemoryRequest):
+async def update_memory(canvas_id: str, memory_id: str, req: UpdateMemoryRequest, user: dict = Depends(verify_canvas_ownership)):
     sb = get_client()
     update: dict = {}
     if req.text is not None:
@@ -98,7 +99,7 @@ async def update_memory(canvas_id: str, memory_id: str, req: UpdateMemoryRequest
 
 
 @router.delete("/canvas/{canvas_id}/memory/{memory_id}")
-async def archive_memory(canvas_id: str, memory_id: str):
+async def archive_memory(canvas_id: str, memory_id: str, user: dict = Depends(verify_canvas_ownership)):
     """Soft-delete: archived=TRUE. Item remains in DB for audit trail."""
     sb = get_client()
     sb.table("memories").update({"archived": True}).eq("id", memory_id).execute()
@@ -114,7 +115,7 @@ class RatifyRequest(BaseModel):
 
 
 @router.post("/canvas/{canvas_id}/memory/{memory_id}/ratify")
-async def ratify_memory_endpoint(canvas_id: str, memory_id: str, req: RatifyRequest):
+async def ratify_memory_endpoint(canvas_id: str, memory_id: str, req: RatifyRequest, user: dict = Depends(verify_canvas_ownership)):
     result = ratify_memory(memory_id, req.scope)
     log_event(canvas_id, "main", "memory_accepted", "user", "text", [])
     return result
@@ -125,7 +126,7 @@ async def ratify_memory_endpoint(canvas_id: str, memory_id: str, req: RatifyRequ
 # ---------------------------------------------------------------------------
 
 @router.get("/canvas/{canvas_id}/session-audit")
-async def get_session_audit(canvas_id: str):
+async def get_session_audit(canvas_id: str, user: dict = Depends(verify_canvas_ownership)):
     """
     Generates the Session Memory Audit inference list at canvas close.
     Creates Tier 2 quarantined entries for each inference.
@@ -165,7 +166,7 @@ class ProcessAuditRequest(BaseModel):
 
 
 @router.post("/canvas/{canvas_id}/audit")
-async def process_session_audit(canvas_id: str, req: ProcessAuditRequest):
+async def process_session_audit(canvas_id: str, req: ProcessAuditRequest, user: dict = Depends(verify_canvas_ownership)):
     sb = get_client()
     for item in req.items:
         if item.action == "accept":

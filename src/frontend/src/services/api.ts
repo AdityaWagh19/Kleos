@@ -12,6 +12,7 @@ export class ApiError extends Error {
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
     headers: { 'Content-Type': 'application/json', ...options?.headers },
+    credentials: 'include',
     ...options,
   });
   if (!res.ok) {
@@ -29,7 +30,7 @@ export const api = {
     request<T>(path, { method: 'PUT', body: JSON.stringify(body) }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
   postFormData: <T>(path: string, formData: FormData) =>
-    fetch(`${BASE_URL}${path}`, { method: 'POST', body: formData })
+    fetch(`${BASE_URL}${path}`, { method: 'POST', body: formData, credentials: 'include' })
       .then(async (res) => {
         if (!res.ok) throw new ApiError(res.status, await res.text());
         return res.json() as Promise<T>;
