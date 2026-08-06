@@ -6,6 +6,12 @@ on:
       - main
   workflow_dispatch:
 
+# Cancel any in-progress or queued run for the same branch when a new push arrives.
+# Only one deployment runs at a time; the latest commit always wins.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
   FRONTEND_IMAGE: ghcr.io/adityawagh19/kleos/kleos-frontend
@@ -66,7 +72,7 @@ jobs:
           echo "FRONTEND_URL=https://kleos-ai.duckdns.org" >> .env
 
       - name: Copy files to EC2
-        uses: appleboy/scp-action@master
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
@@ -75,19 +81,19 @@ jobs:
           target: "~/kleos"
 
       - name: Deploy on EC2
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Give docker a few seconds in case it was just installed (on first boot)
             sleep 10
             cd ~/kleos
-            
-            # Login to GHCR to pull private images (if repository is private)
+
+            # Login to GHCR to pull images
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            
+
             # Pull latest images and restart
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d
+
