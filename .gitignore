@@ -43,6 +43,3 @@ Thumbs.db
 
 # SSH keys and deploy credentials
 kleos-deploy-key.pem
-
-# Agent config — local only, not for the repo
-.agents/
