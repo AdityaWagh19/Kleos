@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const frictionCards = [
   { icon: 'data_object', title: 'No persistent object model', desc: 'Every idea lives inside a paragraph, not as a manipulable thing with identity.' },
@@ -13,6 +14,8 @@ const frictionCards = [
 ];
 
 export default function LandingPage() {
+  const { user } = useAuth();
+  const ctaHref = user ? '/dashboard' : '/login';
   return (
     <div className="flex flex-col w-full">
       {/* Hero Section */}
@@ -42,7 +45,7 @@ export default function LandingPage() {
           transition={{ duration: 0.4, delay: 0.3, ease: "easeOut" }}
           className="flex items-center justify-center gap-4"
         >
-          <Link to="/dashboard" className="bg-[#141414] text-[#ffffff] px-[24px] h-[48px] flex items-center justify-center rounded-[200px] text-[16px] font-medium no-underline hover:bg-[#292929] transition-colors focus:outline-none focus:ring-2 focus:ring-[#000000] focus:ring-offset-2 focus:ring-offset-[#edede8]">
+          <Link to={ctaHref} className="bg-[#141414] text-[#ffffff] px-[24px] h-[48px] flex items-center justify-center rounded-[200px] text-[16px] font-medium no-underline hover:bg-[#292929] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#141414] focus-visible:ring-offset-2">
             Start Thinking
           </Link>
           <Link to="/docs" className="bg-[#dbdbd2] text-[#292929] px-[24px] h-[48px] flex items-center justify-center rounded-[200px] text-[16px] font-medium no-underline hover:bg-[#c0c0c0] transition-colors focus:outline-none focus:ring-2 focus:ring-[#000000] focus:ring-offset-2 focus:ring-offset-[#edede8]">
@@ -110,10 +113,21 @@ export default function LandingPage() {
             </Link>
           </div>
           <div className="bg-[#dbdbd2] rounded-[16px] aspect-square flex items-center justify-center p-8 border border-[#c0c0c0]">
-            {/* Placeholder for visual */}
-            <div className="text-[#8f8f8e] text-center">
-              <span className="material-symbols-outlined text-[48px] mb-2">account_tree</span>
-              <p>Assumption Graph Visual</p>
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-[#c0c0c0] flex items-center justify-center">
+                <span className="material-symbols-outlined text-[32px] text-[#353535]">account_tree</span>
+              </div>
+              <div className="flex gap-2">
+                {['low','medium','high'].map((level, i) => (
+                  <div key={i} className="flex flex-col items-center gap-1">
+                    <div
+                      className="w-4 rounded-full bg-[#8f8f8e]"
+                      style={{ height: `${24 + i * 16}px`, opacity: 0.4 + i * 0.3 }}
+                    />
+                    <span className="text-[10px] text-[#8f8f8e] capitalize">{level}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -122,11 +136,19 @@ export default function LandingPage() {
       {/* WOW 2 Section */}
       <section className="py-[100px] px-6 bg-[#dbdbd2]">
         <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-[48px] items-center">
-          <div className="order-2 md:order-1 bg-[#edede8] rounded-[16px] aspect-square flex items-center justify-center p-8 border border-[#c0c0c0]">
-            {/* Placeholder for visual */}
-            <div className="text-[#8f8f8e] text-center">
-              <span className="material-symbols-outlined text-[48px] mb-2">memory</span>
-              <p>Memory Negotiation UI</p>
+          <div className="order-1 md:order-2 bg-[#edede8] rounded-[16px] aspect-square flex items-center justify-center p-8 border border-[#c0c0c0]">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-[#c0c0c0] flex items-center justify-center">
+                <span className="material-symbols-outlined text-[32px] text-[#353535]">memory</span>
+              </div>
+              <div className="flex flex-col gap-2 w-full max-w-[160px]">
+                {['Session','Workspace','Global'].map((tier, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: i === 0 ? '#c0c0c0' : i === 1 ? '#8f8f8e' : '#141414' }} />
+                    <span className="text-[12px] text-[#6f6f6e]">{tier}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
           <div className="order-1 md:order-2">

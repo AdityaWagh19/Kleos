@@ -26,10 +26,12 @@ if client_id and client_secret:
     )
 
 @router.get("/login/google")
-async def login_google(request: Request):
+async def login_google(request: Request, return_to: str = "/dashboard"):
     if not client_id:
         raise HTTPException(500, "Google OAuth not configured (missing GOOGLE_CLIENT_ID)")
     redirect_uri = request.url_for("auth_callback", provider="google")
+    # Store return_to in session so the callback can redirect correctly
+    request.session["return_to"] = return_to
     return await oauth.google.authorize_redirect(request, str(redirect_uri))
 
 @router.get("/callback/{provider}")
@@ -75,8 +77,14 @@ async def auth_callback(request: Request, provider: str):
     redis = get_redis()
     redis.setex(f"session:{session_id}", 604800, user_id)
     
+    # Read return_to from session, default to /dashboard
+    return_to = request.session.pop("return_to", "/dashboard")
+    # Sanitize return_to to prevent open redirect — only allow relative paths
+    if not return_to.startswith("/"):
+        return_to = "/dashboard"
+    
     frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:5173")
-    response = RedirectResponse(url=f"{frontend_url}/workspace")
+    response = RedirectResponse(url=f"{frontend_url}{return_to}")
     
     response.set_cookie(
         key="session_id",
@@ -95,12 +103,8 @@ async def get_me(user: dict = Depends(get_current_user)):
 @router.post("/logout")
 async def logout(request: Request):
     session_id = request.cookies.get("session_id")
-    # Redirect to frontend root or return JSON? Usually JSON for XHR logout
-    if request.headers.get("accept", "").find("text/html") != -1:
-        response = RedirectResponse(url="/")
-    else:
-        from fastapi.responses import JSONResponse
-        response = JSONResponse(content={"logged_out": True})
+    from fastapi.responses import JSONResponse
+    response = JSONResponse(content={"logged_out": True})
         
     if session_id:
         redis = get_redis()

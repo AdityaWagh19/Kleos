@@ -12,6 +12,7 @@ const SECTIONS = [
 
 export default function DocsPage() {
   const [activeSection, setActiveSection] = useState('overview');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -38,25 +39,50 @@ export default function DocsPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#edede8] text-[#292929] font-['Switzer',sans-serif]">
+    <div className="flex min-h-screen bg-[#edede8] text-[#292929]" style={{ fontFamily: 'var(--font-switzer)' }}>
+      {/* Mobile sidebar toggle */}
+      <button
+        onClick={() => setSidebarOpen(v => !v)}
+        className="md:hidden fixed top-[68px] left-4 z-40 w-9 h-9 rounded-[8px] border border-[#0000001f] bg-white flex items-center justify-center"
+        aria-label="Toggle navigation"
+      >
+        <span className="material-symbols-outlined text-[18px] text-[#292929]">
+          {sidebarOpen ? 'close' : 'menu'}
+        </span>
+      </button>
+
+      {/* Mobile overlay backdrop */}
+      {sidebarOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/20 z-20"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 bottom-0 w-[220px] bg-[#ffffff] border-r border-[#d0d0c8] flex flex-col z-10 overflow-y-auto">
+      <aside
+        className={`fixed left-0 top-[60px] bottom-0 w-[220px] border-r border-[#d0d0c8] flex flex-col z-30 overflow-y-auto transition-transform duration-200 md:translate-x-0 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+        style={{ backgroundColor: 'var(--color-frosted-white)' }}
+      >
         <div className="p-6 pb-32">
-          <Link to="/" className="text-[16px] font-medium text-[#141414] hover:opacity-70 transition-opacity">
-            ← Home
+          <Link to="/" className="text-[14px] font-medium text-[#353535] hover:text-[#141414] transition-colors no-underline flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-[14px]">arrow_back</span>
+            Home
           </Link>
-          <div className="mt-8 text-[11px] uppercase tracking-wider text-[#6f6f6e] mb-4 font-medium">
+          <div className="mt-8 text-[11px] uppercase tracking-wider text-[#8f8f8e] mb-4 font-medium">
             Documentation
           </div>
-          <nav className="flex flex-col gap-1">
+          <nav className="flex flex-col gap-0.5">
             {SECTIONS.map((s) => (
               <button
                 key={s.id}
-                onClick={() => scrollTo(s.id)}
-                className={`text-left px-3 py-1.5 text-[14px] transition-colors ${
+                onClick={() => { scrollTo(s.id); setSidebarOpen(false); }}
+                className={`text-left px-3 py-2 rounded-[6px] text-[14px] transition-colors ${
                   activeSection === s.id
-                    ? 'border-l-2 border-[#4cc02b] text-[#141414] font-medium bg-[#edede8]/50'
-                    : 'border-l-2 border-transparent text-[#6f6f6e] hover:text-[#141414]'
+                    ? 'text-[#141414] font-medium bg-[#edede8]'
+                    : 'text-[#6f6f6e] hover:text-[#141414] hover:bg-[#edede8]/50'
                 }`}
               >
                 {s.label}
@@ -67,7 +93,7 @@ export default function DocsPage() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 ml-[220px] p-12 lg:p-20 overflow-y-auto">
+      <main className="flex-1 md:ml-[220px] p-8 md:p-12 lg:p-20 overflow-y-auto pt-[72px] md:pt-12">
         <div className="max-w-[680px] mx-auto pb-32">
           
           <h1 className="text-[64px] font-medium leading-[0.8] tracking-[-0.64px] mb-12 text-[#141414]">

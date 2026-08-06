@@ -22,6 +22,7 @@ router = APIRouter()
 
 class CreateCanvasRequest(BaseModel):
     workspace_mode: str = "analytical"
+    title: str | None = None
 
 
 @router.post("/canvas")
@@ -33,6 +34,7 @@ async def create_canvas(req: CreateCanvasRequest, user: dict = Depends(get_curre
         "id": canvas_id,
         "workspace_mode": req.workspace_mode,
         "user_id": user["id"],
+        "title": req.title,
     }).execute()
     sb.table("branches").insert({
         "id": branch_id,
@@ -40,6 +42,26 @@ async def create_canvas(req: CreateCanvasRequest, user: dict = Depends(get_curre
         "name": "main",
     }).execute()
     return {"id": canvas_id, "branch_id": branch_id}
+
+
+class UpdateCanvasTitleRequest(BaseModel):
+    title: str
+
+
+@router.patch("/canvas/{canvas_id}/title")
+async def update_canvas_title(
+    canvas_id: str,
+    req: UpdateCanvasTitleRequest,
+    user: dict = Depends(get_current_user)
+):
+    sb = get_client()
+    canvas = sb.table("canvases").select("user_id").eq("id", canvas_id).single().execute()
+    if not canvas.data:
+        raise HTTPException(404, "Canvas not found")
+    if canvas.data.get("user_id") != user["id"]:
+        raise HTTPException(403, "Not authorized")
+    sb.table("canvases").update({"title": req.title.strip()}).eq("id", canvas_id).execute()
+    return {"title": req.title.strip()}
 
 
 @router.get("/canvases")
