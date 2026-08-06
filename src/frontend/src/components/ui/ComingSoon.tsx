@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { NavBar } from '../layout/NavBar';
-import { Footer } from '../layout/Footer';
+import { NavBar } from '../../layout/NavBar';
+import { Footer } from '../../layout/Footer';
 
 interface ComingSoonProps {
   title: string;
