@@ -1,108 +1,127 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { api, openStream } from './services/api';
+import { useVoice } from './hooks/useVoice';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+
+// Layout
+import { WorkspaceChrome } from './workspace/WorkspaceChrome';
+import { HamburgerDrawer } from './workspace/HamburgerDrawer';
+import { BottomChatBar } from './workspace/BottomChatBar';
+import { CanvasLeftRail } from './workspace/CanvasLeftRail';
+import { MemoryAssumptionToggle } from './workspace/MemoryAssumptionToggle';
+import { SourcesToggle } from './workspace/SourcesToggle';
+import { ShortcutLegend } from './workspace/ShortcutLegend';
+
+// Canvas
 import { KleosCanvas } from './canvas/KleosCanvas';
-import { ModeSelector } from './onboarding/ModeSelector';
-import { SuggestionChips } from './onboarding/SuggestionChips';
-import { StatusPill } from './components/StatusPill';
-import { ModeIndicator } from './components/ModeIndicator';
-import { ReasoningRibbon } from './components/ReasoningRibbon';
+import { useCanvas } from './hooks/useCanvas';
+
+// Overlays/Panels
 import { MemoryPanel } from './panels/MemoryPanel';
 import { AssumptionAuditPanel } from './panels/AssumptionAuditPanel';
 import { MemoryNegotiationCard } from './cards/MemoryNegotiationCard';
 import { SessionMemoryAuditCard } from './cards/SessionMemoryAuditCard';
 import { ExportDialog } from './cards/ExportDialog';
-import { BranchRail } from './components/BranchRail';
-import { PauseStopControls } from './components/PauseStopControls';
-import { VoiceTranscript } from './components/VoiceTranscript';
 import { ActivityLog } from './panels/ActivityLog';
-import { SourceFilter } from './components/SourceFilter';
-import { TextInputBar } from './components/TextInputBar';
-import { useVoice } from './hooks/useVoice';
-import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
-import { api } from './services/api';
-import { useParams } from 'react-router-dom';
+import { SuggestionChips } from './onboarding/SuggestionChips';
+import { VoiceTranscript } from './components/VoiceTranscript';
+import { ReasoningRibbon } from './components/ReasoningRibbon';
+
 import type {
   WorkspaceMode, Assumption, Branch, ReasoningStep,
-  ActivityEvent, ProvenanceType,
+  ActivityEvent,
 } from './types';
-
-// ─── App shell ──────────────────────────────────────────────────────────────
 
 export default function App() {
   const { canvasId: urlCanvasId } = useParams<{ canvasId: string }>();
+  const navigate = useNavigate();
   
-  // Canvas lifecycle
-  const [canvasId, setCanvasId]     = useState<string | null>(urlCanvasId || null);
-  const [branchId, setBranchId]     = useState<string>('');
-  const [loading,  setLoading]      = useState(true);
-  const [error,    setError]        = useState<string | null>(null);
+  // ── Core State ───────────────────────────────────────────────────────────
+  const [canvasId, setCanvasId] = useState<string | null>(urlCanvasId || null);
+  const [branchId, setBranchId] = useState<string>('');
+  const [title, setTitle] = useState<string | null>(null);
+  const [mode, setMode] = useState<WorkspaceMode>('analytical');
+  const [incognito, setIncognito] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Workspace mode
-  const [mode,         setMode]         = useState<WorkspaceMode>('analytical');
-  const [modeSelected, setModeSelected] = useState(true);
+  // ── Drawer State ─────────────────────────────────────────────────────────
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [compareMode, setCompareMode] = useState(false);
+  const [activityEvents, setActivityEvents] = useState<ActivityEvent[]>([]);
 
-  // Canvas state
-  const [hasNodes] = useState(false);
-  const [branches,  setBranches]  = useState<Branch[]>([]);
-  const [activeBranchId, setActiveBranchId] = useState('');
-  const [compareMode, setCompareMode]       = useState(false);
+  // ── Panel State ──────────────────────────────────────────────────────────
+  const [memoryOpen, setMemoryOpen] = useState(false);
+  const [auditOpen, setAuditOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
-  // AI compilation state
-  const [ribbonSteps,  setRibbonSteps] = useState<ReasoningStep[]>([]);
-  const [isCompiling,  setIsCompiling] = useState(false);
-  const [pillState,    setPillState]   = useState<'working' | 'listening' | 'ready'>('ready');
-  const [dropError,    setDropError]   = useState<string | null>(null);
-  const sseRef = useRef<EventSource | null>(null);
+  // ── Compilation & Pipeline State ─────────────────────────────────────────
+  const [isCompiling, setIsCompiling] = useState(false);
+  const [ribbonSteps, setRibbonSteps] = useState<ReasoningStep[]>([]);
+  const [dropError, setDropError] = useState<string | null>(null);
+  const sseRef = useRef<{ close: () => void } | null>(null);
 
-  // Panels
-  const [memoryOpen,      setMemoryOpen]      = useState(false);
-  const [auditOpen,       setAuditOpen]       = useState(false);
-  const [activityOpen,    setActivityOpen]    = useState(false);
-  const [exportOpen,      setExportOpen]      = useState(false);
-  const [showAuditCard,   setShowAuditCard]   = useState(false);
-  const [auditItems,      setAuditItems]      = useState<Array<{ memory_id: string; text: string; confidence: 'low' | 'medium' | 'high' }>>([]);
-  const [assumptions]     = useState<Assumption[]>([]);
-  const [activityEvents]  = useState<ActivityEvent[]>([]);
-  const [incognito,       setIncognito]       = useState(false);
-
-  // Memory negotiation card
+  // ── Audit & Negotiation ──────────────────────────────────────────────────
+  const [showAuditCard, setShowAuditCard] = useState(false);
+  const [auditItems, setAuditItems] = useState<any[]>([]);
   const [negCardOpen, setNegCardOpen] = useState(false);
-  const [negCardObs,  setNegCardObs]  = useState('I noticed a pattern in your session.');
+  const [negCardObs, setNegCardObs] = useState('');
+  const [assumptions, setAssumptions] = useState<Assumption[]>([]);
 
-  // Voice
-  const [transcript, setTranscript] = useState('');
-  const [sourceFilter, setSourceFilter] = useState<ProvenanceType | null>(null);
+  // ── Canvas Hook ──────────────────────────────────────────────────────────
+  const {
+    nodes,
+    status: pillState,
+    setStatus: setPillState,
+    loadCanvas,
+    activeSourceFilter,
+    setActiveSourceFilter,
+    mergeNodes,
+  } = useCanvas(canvasId || '', branchId);
 
-  // Incognito visual state
-  const [showIncognitoBorder, setShowIncognitoBorder] = useState(false);
+  const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
+  const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
 
-  // ── Bootstrap ───────────────────────────────────────────────────────────
-
+  // ── Bootstrap ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!urlCanvasId) {
       setError('No canvas ID provided');
       setLoading(false);
       return;
     }
-    
     api.get<{ canvas: any, branches: Branch[] }>(`/api/canvas/${urlCanvasId}`)
       .then(res => {
         setCanvasId(res.canvas.id);
+        setTitle(res.canvas.title);
         setMode(res.canvas.workspace_mode as WorkspaceMode);
-        
-        // Find active branch
+        setIncognito(res.canvas.incognito_mode);
         const active = res.branches.find(b => b.status === 'active') || res.branches[0];
-        if (active) {
-          setBranchId(active.id);
-          setActiveBranchId(active.id);
-        }
+        if (active) setBranchId(active.id);
         setBranches(res.branches);
       })
       .catch(err => setError(String(err)))
       .finally(() => setLoading(false));
   }, [urlCanvasId]);
 
-  // ── Text / file drop ─────────────────────────────────────────────────────
+  // Load assumptions & activity when panels open
+  useEffect(() => {
+    if (auditOpen && canvasId) {
+      api.get<{ assumptions: Assumption[] }>(`/api/canvas/${canvasId}/assumptions?branch_id=${branchId}`)
+        .then(res => setAssumptions(res.assumptions));
+    }
+  }, [auditOpen, canvasId, branchId]);
 
+  useEffect(() => {
+    if (drawerOpen && canvasId) {
+      api.get<{ events: ActivityEvent[] }>(`/api/canvas/${canvasId}/activity`)
+        .then(res => setActivityEvents(res.events));
+    }
+  }, [drawerOpen, canvasId]);
+
+  // ── Input Drop ───────────────────────────────────────────────────────────
   const handleTextDrop = useCallback(async (text: string) => {
     if (!canvasId || !branchId) return;
     setDropError(null);
@@ -111,359 +130,257 @@ export default function App() {
     setRibbonSteps([]);
 
     try {
-      const base = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
-
-      // Open SSE stream first to capture ribbon steps
-      const streamUrl = `${base}/api/canvas/${canvasId}/stream?text=${encodeURIComponent(text)}&workspace_mode=${mode}&branch_id=${branchId}`;
-      const es = new EventSource(streamUrl);
-      sseRef.current = es;
-
-      es.onmessage = (e) => {
-        try {
-          const payload = JSON.parse(e.data as string) as { type: string; data?: unknown; observation?: string };
+      const url = `/api/canvas/${canvasId}/stream?text=${encodeURIComponent(text)}&workspace_mode=${mode}&branch_id=${branchId}`;
+      const sse = openStream(
+        url,
+        (payload) => {
           if (payload.type === 'step' && payload.data) {
             setRibbonSteps(prev => [...prev, payload.data as ReasoningStep]);
-          } else if (payload.type === 'compilation') {
-            // Nodes are NOT in DB yet — backend writes AFTER emitting this event.
-            // Do NOT reload canvas here. Wait for 'done'.
-            setPillState('working'); // keep working indicator until done
           } else if (payload.type === 'memory_card_trigger') {
-            // Fix 5: Show Memory Negotiation Card after compilation
             if (payload.observation) {
               setNegCardObs(payload.observation as string);
               setNegCardOpen(true);
             }
-          } else if (payload.type === 'done') {
-            // Nodes are now persisted in DB — safe to reload canvas
-            es.close();
-            sseRef.current = null;
-            setIsCompiling(false);
-            setPillState('ready');
-            window.dispatchEvent(new CustomEvent('kleos:reload-canvas'));
-          } else if (payload.type === 'error') {
-            es.close();
-            sseRef.current = null;
-            setDropError('Compilation failed — check backend logs.');
-            setIsCompiling(false);
-            setPillState('ready');
           }
-        } catch {}
-      };
-      es.onerror = () => {
-        es.close();
-        setDropError('Connection error during compilation.');
-        setIsCompiling(false);
-        setPillState('ready');
-      };
+        },
+        () => {
+          sseRef.current = null;
+          setIsCompiling(false);
+          setPillState('ready');
+          loadCanvas(); // DB is updated, load canvas
+        },
+        (msg) => {
+          setDropError(msg);
+          setIsCompiling(false);
+          setPillState('ready');
+        }
+      );
+      sseRef.current = sse;
     } catch (err) {
       setDropError(String(err));
       setIsCompiling(false);
       setPillState('ready');
     }
-  }, [canvasId, branchId, mode]);
+  }, [canvasId, branchId, mode, loadCanvas, setPillState]);
 
-  // ── Mode selection ───────────────────────────────────────────────────────
+  const handleFileDrop = useCallback(async (file: File) => {
+    if (!canvasId) return;
+    setDropError(null);
+    setIsCompiling(true);
+    setPillState('working');
+    setRibbonSteps([]);
 
-  const handleModeSelect = useCallback(async (m: WorkspaceMode) => {
-    setMode(m);
-    setModeSelected(true);
-    if (canvasId) await api.put(`/api/canvas/${canvasId}/mode?mode=${m}`, {});
-  }, [canvasId]);
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      await api.postFormData(`/api/canvas/${canvasId}/drop`, formData);
+      loadCanvas();
+    } catch (err) {
+      setDropError(String(err));
+    } finally {
+      setIsCompiling(false);
+      setPillState('ready');
+    }
+  }, [canvasId, loadCanvas, setPillState]);
 
   // ── Voice ────────────────────────────────────────────────────────────────
-
   const { startVoice, stopVoice, status: voiceStatus } = useVoice({
     canvasId: canvasId ?? '',
-    onToolCall: (tool, _args, _result) => {
-      // Reload canvas whenever a tool call modifies canvas state
-      const canvasMutatingTools = new Set([
-        'create_node', 'create_edge', 'merge_nodes', 'collapse_cluster',
-        'flag_contradiction', 'create_branch',
-      ]);
-      if (canvasMutatingTools.has(tool)) {
-        // Small delay to ensure Supabase write completes before reload
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('kleos:reload-canvas'));
-        }, 600);
-      }
+    onToolCall: (tool) => {
+      const mutators = new Set(['create_node', 'create_edge', 'merge_nodes', 'create_branch']);
+      if (mutators.has(tool)) setTimeout(loadCanvas, 600);
     },
-    onTranscript: (text, _isFinal) => setTranscript(text),
     onStatusChange: (s) => {
-      if (s === 'listening')         setPillState('listening');
-      else if (s === 'idle')         setPillState('ready');
-      else if (s === 'reconnecting') setPillState('listening');
+      if (s === 'listening' || s === 'reconnecting') setPillState('listening');
+      else if (s === 'idle') setPillState('ready');
     },
   });
 
-  // ── Keyboard shortcuts ───────────────────────────────────────────────────
-
+  // ── Keyboard Shortcuts ───────────────────────────────────────────────────
   useKeyboardShortcuts({
-    onBranch:  () => { /* Branch Rail handles UI */ },
-    onMerge:   () => { /* TODO Phase post-9 */ },
-    onCompare: () => setCompareMode(c => !c),
-    onTrace:   () => { /* Reasoning Path Walk launched from node context menu */ },
-    onPin:     () => { /* TODO */ },
+    onBranch: () => setDrawerOpen(true),
+    onMerge: () => {
+      if (selectedNodeIds.length >= 2) {
+        setMergeDialogOpen(true);
+      }
+    },
+    onCompare: () => setCompareMode(!compareMode),
+    onTrace: () => { /* phase 6 */ },
+    onPin: () => { /* phase 6 */ },
     onDismiss: () => {
       setMemoryOpen(false);
       setAuditOpen(false);
       setNegCardOpen(false);
       setExportOpen(false);
-      setActivityOpen(false);
-      setCompareMode(false);
+      setDrawerOpen(false);
+      setShortcutsOpen(false);
     },
   });
+  useEffect(() => {
+    const handleLegend = (e: KeyboardEvent) => {
+      if (e.key === '?' && !e.metaKey && !e.ctrlKey) {
+        if (document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+          setShortcutsOpen(true);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleLegend);
+    return () => window.removeEventListener('keydown', handleLegend);
+  }, []);
 
-  // ── Incognito ────────────────────────────────────────────────────────────
-
-  const toggleIncognito = async () => {
-    if (!canvasId) return;
-    const next = !incognito;
-    setIncognito(next);
-    setShowIncognitoBorder(next);
-    await api.put(`/api/canvas/${canvasId}/incognito?enabled=${next}`, {});
-  };
-
-  // ── Canvas close → Session Audit ────────────────────────────────────────
-  // Called externally when user clicks "Close canvas" (wired in a future nav bar)
-  // Called when user closes canvas (wired to a "Close" button in future nav iterations)
-  const triggerSessionAudit = useCallback(async () => {
-    if (!canvasId || incognito) return;
-    const result = await api.get<{ items: typeof auditItems }>(`/api/canvas/${canvasId}/session-audit`);
-    if (result.items.length > 0) {
-      setAuditItems(result.items);
-      setShowAuditCard(true);
-    }
-  }, [canvasId, incognito]); // eslint-disable-line react-hooks/exhaustive-deps
-  void triggerSessionAudit; // exposed for external caller
-
-  // ── Loading / error states ───────────────────────────────────────────────
-
-  if (loading) return (
-    <div className="flex h-screen w-screen items-center justify-center"
-         style={{ background: '#111111', color: '#9c9c9c', fontSize: '12px' }}>
-      Initialising canvas...
-    </div>
-  );
-  if (error || !canvasId) return (
-    <div className="flex h-screen w-screen items-center justify-center text-center p-6"
-         style={{ background: '#111111', color: '#e84040', fontSize: '12px' }}>
-      Failed to connect to the Kleos AI service. Please try again later.<br />{error}
-    </div>
-  );
-
-  // ── First-use Mode Selector ──────────────────────────────────────────────
-
-  if (!modeSelected) {
-    return <ModeSelector onSelect={handleModeSelect} />;
-  }
-
-  // ── Main canvas layout ───────────────────────────────────────────────────
+  // ── Render ───────────────────────────────────────────────────────────────
+  if (loading) return <div className="flex h-screen w-screen items-center justify-center text-xs text-gray-500">Initialising workspace...</div>;
+  if (error || !canvasId) return <div className="flex h-screen w-screen items-center justify-center text-xs text-red-500">{error}</div>;
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden" style={{ background: '#111111' }}>
-      {/* ── Left panel: Memory ── */}
-      {memoryOpen && (
-        <MemoryPanel open={memoryOpen} canvasId={canvasId} onClose={() => setMemoryOpen(false)} />
-      )}
+    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[var(--color-linen-canvas)]">
+      
+      {/* ── Chrome ── */}
+      <WorkspaceChrome
+        canvasId={canvasId}
+        title={title}
+        mode={mode}
+        incognito={incognito}
+        onTitleChange={async (t) => {
+          setTitle(t);
+          await api.patch(`/api/canvas/${canvasId}/title`, { title: t });
+        }}
+        onModeChange={async (m) => {
+          setMode(m);
+          await api.put(`/api/canvas/${canvasId}/mode`, { mode: m });
+        }}
+        onIncognitoToggle={async () => {
+          setIncognito(!incognito);
+          await api.put(`/api/canvas/${canvasId}/incognito`, { enabled: !incognito });
+        }}
+        onExport={() => setExportOpen(true)}
+        onHamburger={() => setDrawerOpen(true)}
+      />
 
-      {/* ── Main canvas area ── */}
-      <main className="flex-1 flex flex-col relative overflow-hidden">
-
-        {/* Header bar */}
-        <div className="flex items-center gap-2 px-4 shrink-0"
-             style={{ height: '48px', background: '#1a1a1a', borderBottom: '1px solid #2b2b2b' }}>
-
-          {/* Memory panel toggle */}
-          <button onClick={() => setMemoryOpen(o => !o)} title="Memory Panel"
-                  className="material-symbols-outlined transition-colors"
-                  style={{ fontSize: '18px', color: memoryOpen ? '#e5ff5d' : '#9c9c9c' }}>
-            memory
-          </button>
-
-          {/* Mode indicator — click to cycle through modes */}
-          <ModeIndicator
-            mode={mode}
-            onClick={async () => {
-              const ORDER: WorkspaceMode[] = ['analytical', 'creative', 'critical', 'strategic'];
-              const next = ORDER[(ORDER.indexOf(mode) + 1) % ORDER.length];
-              setMode(next);
-              if (canvasId) await api.put(`/api/canvas/${canvasId}/mode?mode=${next}`, {});
-            }}
-          />
-
-          {/* Source filter */}
-          <SourceFilter activeFilter={sourceFilter} onFilter={setSourceFilter} />
-
-          <div className="flex-1" />
-
-          {/* Status Pill */}
-          <StatusPill state={pillState} lastSteps={ribbonSteps.slice(-3)} />
-
-          {/* Pause/Stop controls */}
-          <PauseStopControls
-            isCompiling={isCompiling}
-            onPause={() => { sseRef.current?.close(); setIsCompiling(false); setPillState('ready'); }}
-            onStop={()  => { sseRef.current?.close(); setIsCompiling(false); setPillState('ready'); }}
-          />
-
-          {/* Voice toggle */}
-          <button
-            onClick={() => voiceStatus === 'idle' ? startVoice() : stopVoice()}
-            title={voiceStatus === 'idle' ? 'Start voice' : 'Stop voice'}
-            className="material-symbols-outlined transition-colors"
-            style={{ fontSize: '18px', color: voiceStatus !== 'idle' ? '#e5ff5d' : '#9c9c9c' }}
-          >
-            {voiceStatus !== 'idle' ? 'mic' : 'mic_off'}
-          </button>
-
-          {/* Incognito toggle */}
-          <button onClick={toggleIncognito} title={incognito ? 'Incognito ON — no memory writes' : 'Enable Incognito'}
-                  className="material-symbols-outlined transition-colors"
-                  style={{ fontSize: '18px', color: incognito ? '#f9f9f9' : '#9c9c9c' }}>
-            {incognito ? 'visibility_off' : 'visibility'}
-          </button>
-
-          {/* Assumption Audit Panel toggle */}
-          <button onClick={() => setAuditOpen(o => !o)} title="Assumption Audit Panel"
-                  className="material-symbols-outlined transition-colors"
-                  style={{ fontSize: '18px', color: auditOpen ? '#e5ff5d' : '#9c9c9c' }}>
-            help
-          </button>
-
-          {/* Activity Log toggle */}
-          <button onClick={() => setActivityOpen(o => !o)} title="Activity Log"
-                  className="material-symbols-outlined transition-colors"
-                  style={{ fontSize: '18px', color: activityOpen ? '#e5ff5d' : '#9c9c9c' }}>
-            history
-          </button>
-
-          {/* Export */}
-          <button onClick={() => setExportOpen(true)} title="Export"
-                  className="material-symbols-outlined transition-colors"
-                  style={{ fontSize: '18px', color: '#9c9c9c' }}>
-            download
-          </button>
-
-          {/* Incognito badge */}
-          {incognito && (
-            <span style={{ fontSize: '10px', fontWeight: 500, color: '#f9f9f9',
-                           background: '#2b2b2b', border: '1px solid #f9f9f9',
-                           borderRadius: '4px', padding: '2px 8px' }}>
-              Incognito
-            </span>
-          )}
-        </div>
-
-        {/* Branch Rail */}
-        <BranchRail
-          canvasId={canvasId}
-          branches={branches}
-          activeBranchId={activeBranchId}
-          compareMode={compareMode}
-          onBranchSwitch={id => setActiveBranchId(id)}
-          onCompare={(_a, _b) => setCompareMode(true)}
-          onBranchCreated={b => setBranches(prev => [...prev, b])}
+      {/* ── Main Canvas Area ── */}
+      <div className="flex-1 relative flex">
+        
+        {/* Left Rail */}
+        <CanvasLeftRail
+          nodes={nodes}
+          onNodeSelect={() => {}} // phase 6 focus
         />
 
-        {/* Canvas */}
+        {/* Canvas (ReactFlow) */}
         <div className="flex-1 relative">
-          <KleosCanvas canvasId={canvasId} />
+          <KleosCanvas canvasId={canvasId} branchId={branchId} onNodeSelect={setSelectedNodeIds} />
 
-          {/* Suggestion chips (empty canvas) */}
           <SuggestionChips
-            visible={!hasNodes}
+            visible={nodes.length === 0}
             onStartVoice={startVoice}
-            onFocusText={() => {}}
-            onOpenDrop={() => {}}
+            onFocusText={() => document.querySelector<HTMLTextAreaElement>('.bottom-chat-bar textarea')?.focus()}
+            onOpenDrop={() => document.querySelector<HTMLInputElement>('.bottom-chat-bar input[type="file"]')?.click()}
           />
 
-          {/* Incognito border */}
-          {showIncognitoBorder && (
-            <div className="absolute inset-0 pointer-events-none"
-                 style={{ boxShadow: 'inset 0 0 0 3px #f9f9f9', borderRadius: 0 }} />
+          {/* ── Bottom Overlay Elements ── */}
+          <MemoryAssumptionToggle
+            memoryOpen={memoryOpen}
+            auditOpen={auditOpen}
+            onMemoryToggle={() => setMemoryOpen(!memoryOpen)}
+            onAuditToggle={() => setAuditOpen(!auditOpen)}
+            memoryCount={0} // TODO derived from useCanvas/memory cache
+            assumptionCount={assumptions.length}
+          />
+
+          <SourcesToggle
+            activeFilter={activeSourceFilter}
+            onFilterChange={setActiveSourceFilter}
+            sources={Array.from(new Set(nodes.filter(n => n.type === 'source').map(n => ({ id: n.data.provenance_type, name: n.data.text }))))}
+          />
+
+          <BottomChatBar
+            canvasId={canvasId}
+            branchId={branchId}
+            isCompiling={isCompiling}
+            pillState={pillState}
+            onSubmit={handleTextDrop}
+            onFileAttach={handleFileDrop}
+            onVoiceToggle={() => voiceStatus === 'idle' ? startVoice() : stopVoice()}
+            voiceActive={voiceStatus !== 'idle'}
+            onPause={() => { sseRef.current?.close(); setIsCompiling(false); setPillState('ready'); }}
+            onStop={() => { sseRef.current?.close(); setIsCompiling(false); setPillState('ready'); loadCanvas(); }}
+          />
+
+          <VoiceTranscript transcript="" isActive={voiceStatus !== 'idle'} />
+          <ReasoningRibbon steps={ribbonSteps} isActive={isCompiling} onStepClick={() => {}} />
+
+          {dropError && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-red-100 text-red-800 text-xs rounded shadow z-50 flex items-center gap-2 border border-red-200">
+              {dropError}
+              <button onClick={() => setDropError(null)} className="material-symbols-outlined text-[16px]">close</button>
+            </div>
           )}
-
-          {/* Right panel: Assumption Audit */}
-          <AssumptionAuditPanel
-            open={auditOpen}
-            assumptions={assumptions}
-            onClose={() => setAuditOpen(false)}
-            onHoverAssumption={() => {}}
-            onLeaveAssumption={() => {}}
-            onOverride={() => {}}
-            onAccept={() => {}}
-            onDelete={() => {}}
-            onAskAI={() => {}}
-          />
-
-          {/* Memory Negotiation Card */}
-          <MemoryNegotiationCard
-            open={negCardOpen}
-            observation={negCardObs}
-            onChoice={async (scope) => {
-              setNegCardOpen(false);
-              if (scope !== 'later' && scope !== 'none') {
-                // Ratify the most recent Tier 2 memory
-                const mems = await api.get<Array<{ id: string; tier: number; quarantined: boolean }>>(
-                  `/api/canvas/${canvasId}/memory`
-                );
-                const pending = mems.filter(m => m.tier === 2 && m.quarantined);
-                if (pending.length > 0) {
-                  await api.post(`/api/canvas/${canvasId}/memory/${pending[0].id}/ratify`, { scope });
-                }
-              }
-            }}
-          />
-
-          {/* Voice transcript */}
-          <VoiceTranscript transcript={transcript} isActive={voiceStatus !== 'idle'} />
-
-          {/* Reasoning Ribbon */}
-          <ReasoningRibbon
-            steps={ribbonSteps}
-            isActive={isCompiling}
-            onStepClick={() => {}}
-          />
         </div>
 
-        {/* Drop error banner */}
-        {dropError && (
-          <div className="px-4 py-2 flex items-center justify-between"
-               style={{ background: '#3a1a1a', borderTop: '1px solid #e84040' }}>
-            <span style={{ fontSize: '12px', color: '#e84040' }}>{dropError}</span>
-            <button onClick={() => setDropError(null)}
-                    className="material-symbols-outlined" style={{ fontSize: '16px', color: '#e84040' }}>
-              close
-            </button>
-          </div>
-        )}
+      </div>
 
-        {/* Text input bar */}
-        <TextInputBar
-          onSubmit={handleTextDrop}
-          isCompiling={isCompiling}
-        />
-      </main>
-
-      {/* ── Overlays ── */}
-      {activityOpen && (
-        <ActivityLog open={activityOpen} events={activityEvents} onClose={() => setActivityOpen(false)} />
-      )}
-
-      {showAuditCard && (
-        <SessionMemoryAuditCard
-          canvasId={canvasId}
-          items={auditItems}
-          onComplete={() => { setShowAuditCard(false); setAuditItems([]); }}
-        />
-      )}
-
-      <ExportDialog
-        open={exportOpen}
+      {/* ── Drawer & Modals ── */}
+      <HamburgerDrawer
+        open={drawerOpen}
         canvasId={canvasId}
         branchId={branchId}
-        onClose={() => setExportOpen(false)}
+        branches={branches}
+        activeBranchId={branchId}
+        compareMode={compareMode}
+        activityEvents={activityEvents}
+        incognito={incognito}
+        onClose={() => setDrawerOpen(false)}
+        onBranchSwitch={(id) => { setBranchId(id); setDrawerOpen(false); }}
+        onCompare={() => setCompareMode(true)}
+        onBranchCreated={(b) => setBranches([...branches, b])}
       />
+
+      <ShortcutLegend open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+
+      {memoryOpen && <MemoryPanel open={memoryOpen} canvasId={canvasId} onClose={() => setMemoryOpen(false)} />}
+      
+      <AssumptionAuditPanel
+        open={auditOpen}
+        assumptions={assumptions}
+        onClose={() => setAuditOpen(false)}
+        onHoverAssumption={() => {}}
+        onLeaveAssumption={() => {}}
+        onOverride={() => {}}
+        onAccept={() => {}}
+        onDelete={() => {}}
+        onAskAI={() => {}}
+      />
+
+      <MemoryNegotiationCard
+        open={negCardOpen}
+        observation={negCardObs}
+        onChoice={async (scope) => {
+          setNegCardOpen(false);
+          if (scope !== 'later' && scope !== 'none') {
+            const mems = await api.get<any[]>(`/api/canvas/${canvasId}/memory`);
+            const pending = mems.filter(m => m.tier === 2 && m.quarantined);
+            if (pending.length > 0) {
+              await api.post(`/api/canvas/${canvasId}/memory/${pending[0].id}/ratify`, { scope });
+            }
+          }
+        }}
+      />
+
+      {showAuditCard && <SessionMemoryAuditCard canvasId={canvasId} items={auditItems} onComplete={() => setShowAuditCard(false)} />}
+      
+      <ExportDialog open={exportOpen} canvasId={canvasId} branchId={branchId} onClose={() => setExportOpen(false)} />
+
+      <NodeMergeDialog
+        open={mergeDialogOpen}
+        selectedNodeIds={selectedNodeIds}
+        nodes={nodes}
+        onCancel={() => setMergeDialogOpen(false)}
+        onConfirm={async () => {
+          await mergeNodes(selectedNodeIds, branchId);
+          setMergeDialogOpen(false);
+        }}
+      />
+
     </div>
   );
 }

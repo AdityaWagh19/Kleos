@@ -1,12 +1,12 @@
 import { memo } from 'react';
-import { getBezierPath, type EdgeProps } from 'reactflow';
+import { getBezierPath, EdgeLabelRenderer, type EdgeProps } from 'reactflow';
 import type { KleosEdge as KleosEdgeData } from '../types';
 
 const EDGE_COLORS: Record<string, string> = {
   supports:     '#4a90d9',
   contradicts:  '#e84040',
   depends_on:   '#f5c842',
-  derived_from: '#9c9c9c',
+  derived_from: 'var(--color-quartz)',
 };
 
 const DASH_ARRAYS: Record<string, string> = {
@@ -21,29 +21,51 @@ export const KleosEdgeComponent = memo(function KleosEdgeComponent({
   targetX, targetY,
   sourcePosition, targetPosition,
   data,
+  selected,
 }: EdgeProps<KleosEdgeData>) {
-  const [edgePath] = getBezierPath({
+  const [edgePath, labelX, labelY] = getBezierPath({
     sourceX, sourceY, sourcePosition,
     targetX, targetY, targetPosition,
   });
 
-  const color     = EDGE_COLORS[data?.type ?? 'derived_from'];
+  const color = selected ? 'var(--color-graphite-ink)' : EDGE_COLORS[data?.type ?? 'derived_from'];
   const dasharray = DASH_ARRAYS[data?.confidence ?? 'medium'];
 
   return (
-    <g>
-      {/* Wide transparent stroke for easier hover/click */}
-      <path d={edgePath} fill="none" stroke="transparent" strokeWidth={16} />
-      {/* Visible styled stroke */}
+    <>
+      <path d={edgePath} fill="none" stroke="transparent" strokeWidth={24} className="react-flow__edge-interaction" />
       <path
         id={id}
         d={edgePath}
         fill="none"
         stroke={color}
-        strokeWidth={1.5}
+        strokeWidth={selected ? 2.5 : 1.5}
         strokeDasharray={dasharray}
-        opacity={0.8}
+        opacity={selected ? 1 : 0.7}
+        className="react-flow__edge-path"
       />
-    </g>
+      {data?.label && (
+        <EdgeLabelRenderer>
+          <div
+            style={{
+              position: 'absolute',
+              transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+              background: 'var(--color-frosted-white)',
+              padding: '2px 6px',
+              borderRadius: '4px',
+              fontSize: '10px',
+              fontWeight: 500,
+              color: color,
+              border: `1px solid ${color}`,
+              pointerEvents: 'all',
+              fontFamily: 'var(--font-switzer)',
+            }}
+            className="nodrag nopan"
+          >
+            {data.label}
+          </div>
+        </EdgeLabelRenderer>
+      )}
+    </>
   );
 });

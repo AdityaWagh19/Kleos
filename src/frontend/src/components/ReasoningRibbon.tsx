@@ -31,11 +31,11 @@ export function ReasoningRibbon({ steps, isActive, onStepClick }: Props) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 4 }}
           transition={{ duration: 0.2 }}
-          className="absolute bottom-0 left-0 right-0 z-20 flex items-center gap-3 overflow-x-auto px-4"
+          className="absolute bottom-0 left-0 right-0 z-20 flex items-center gap-3 overflow-x-auto px-4 font-switzer scrollbar-hide"
           style={{
-            height:     '36px',
-            background: '#1a1a1a',
-            borderTop:  '1px solid #2b2b2b',
+            height:     '40px',
+            background: 'var(--color-frosted-white)',
+            borderTop:  '1px solid var(--color-warm-stone)',
           }}
         >
           {steps.map((step, i) => (
@@ -43,25 +43,25 @@ export function ReasoningRibbon({ steps, isActive, onStepClick }: Props) {
               key={i}
               onClick={() => onStepClick(step)}
               title={step.detail}
-              className="flex items-center gap-1.5 shrink-0 hover:opacity-80 transition-opacity"
+              className="flex items-center gap-1.5 shrink-0 hover:opacity-70 transition-opacity outline-none"
             >
               <span
-                className="flex items-center justify-center rounded-full text-[9px]"
+                className="flex items-center justify-center rounded-full text-[9px] font-bold"
                 style={{
-                  width:      16,
-                  height:     16,
-                  background: '#2b2b2b',
-                  border:     '1px solid #565656',
-                  color:      '#9c9c9c',
+                  width:      18,
+                  height:     18,
+                  background: 'var(--color-linen-canvas)',
+                  border:     '1px solid var(--color-warm-stone)',
+                  color:      'var(--color-slate-caption)',
                 }}
               >
                 {step.step}
               </span>
-              <span className="text-[11px] max-w-[180px] truncate" style={{ color: '#9c9c9c' }}>
+              <span className="text-[11px] max-w-[180px] truncate font-medium text-transform-capitalize" style={{ color: 'var(--color-charcoal-body)' }}>
                 {step.action.replace(/_/g, ' ')}
               </span>
               {i < steps.length - 1 && (
-                <span className="material-symbols-outlined" style={{ fontSize: '12px', color: '#565656' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '12px', color: 'var(--color-warm-stone)' }}>
                   chevron_right
                 </span>
               )}

@@ -1,0 +1,43 @@
+Canvas Structure Breakdown
+Your sketch lays out a node-based AI workspace with a persistent chat/canvas hybrid layout — similar in spirit to OpenAI Canvas or Claude Artifacts, where the AI and user share a visual workspace instead of just a chat thread. Here's a detailed breakdown of each zone and how to keep it minimal.
+
+Top Bar (Global Controls)
+Menu icon (top-left): opens a slide-out drawer containing everything that isn't core to the primary workflow — settings, integrations, billing, help, team management, etc. This is the correct instinct; keeping secondary features in a collapsible drawer instead of a persistent toolbar is the dominant pattern in modern SaaS dashboards specifically because it protects screen real estate for the primary task.
+
+Persona dropdown ("thinker etc."): lets the user switch the AI's operating mode/personality — should sit next to the menu icon since it directly affects the chat/canvas behavior, not a peripheral setting.
+
+Workspace name (editable, center): identifies the current project/canvas; the pencil icon signals inline-rename, which is good — avoids a separate "rename" modal.
+
+Export (top-right): a single, clearly-labeled primary action button (dropdown for format: PDF/JSON/image) — keeping only one high-frequency action exposed here reinforces minimalism.
+
+Left Rail — Node List
+A vertical stack of node "chips" representing steps/entities in the current flow. Clicking a node should expand an inline or flyout panel with node-specific functionality (edit, delete, configure, view logs) rather than navigating away — this hover/click-to-expand rail is the same interaction as VS Code's or Discord's icon rail, which is well-suited to keeping density low while functionality stays one click deep.
+
+Center — Node Graph / Flow Canvas
+The core visual workspace: one source node branching into multiple output/child nodes. This is your primary "collaborative surface" — the AI should be able to add/modify nodes here in response to chat, and the user should be able to drag, connect, or edit them directly. Per canvas-UX principles, this area needs clear interaction boundaries (what's AI-generated vs. user-edited) and should visually update in sync with the chat below it, not require a manual refresh.
+
+Right Panel — Overflow Feature Menu
+Explicitly labeled "for all other features that'll be in menu" — this confirms your instinct to funnel low-frequency features (integrations, advanced settings, templates, etc.) into a single expandable panel triggered from the top-menu, rather than scattering buttons across the canvas.
+
+Bottom Zone
+Element	Function	Placement Rationale
+Memory/Assumptions toggle	Switches a side panel showing AI memory vs. assumptions	Bottom-left, low-frequency but high-trust info — good as a toggle, not always-on
+Mic + Chat bar	Primary input, with narrated reasoning shown inline	Center, full-width — correctly the dominant element since it's the main interaction point
+Ingestion	File/data upload trigger	Right of chat bar — logically grouped with input actions
+Sources toggle	Opens right-side panel with cited/retrieved sources	Bottom-right, mirrors the memory toggle pattern for symmetry
+Minimalism Principle: Menu-First, Canvas-Light
+Your core UX rule — "all other features should be in the menu, not directly on the UI" — is the right call for an AI workspace like this. The canvas should only ever show: the node graph, the chat/reasoning stream, and the two contextual toggles (memory/assumptions, sources). Everything else (auth/settings, team/collab controls, export formats, templates, integrations, billing) belongs behind the top-left menu drawer, expanding on demand rather than sitting persistently visible.
+
+This follows a well-established interaction pattern: an icon-rail or drawer sidebar that stays collapsed by default and expands only when clicked, preserving focus on the primary content while keeping secondary navigation one click away.
+
+Recommended Refinements
+Consistent panel behavior: make the left node-detail panel, right "other features" panel, and bottom-triggered panels all use the same slide-in/overlay mechanic so the UI feels like one system, not four different popovers.
+
+Reasoning transparency: since you want AI reasoning "narrated and shown" in the chat, consider a collapsible inline reasoning trace (like a "thinking" accordion) rather than always-expanded text, to avoid cluttering the chat column.
+
+Visual hierarchy: only the chat bar and node canvas should have strong visual weight (borders, contrast); toggles and the menu icon should be lower-contrast/icon-only until interacted with.
+
+State persistence: memory/assumptions and sources toggles should remember their open/closed state per workspace, so returning users don't have to re-discover them each session.
+
+This layout is coherent and already reflects sound minimalist SaaS design — the main execution risk is consistency across how panels open/close, which is worth nailing down before implementation.
+

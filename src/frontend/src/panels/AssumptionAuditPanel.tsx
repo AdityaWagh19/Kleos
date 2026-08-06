@@ -29,26 +29,26 @@ export function AssumptionAuditPanel({
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: '100%', opacity: 0 }}
           transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-          className="absolute right-0 top-0 bottom-0 z-30 flex flex-col"
-          style={{ width: 300, background: '#1a1a1a', borderLeft: '1px solid #2b2b2b' }}
+          className="fixed right-0 top-[48px] bottom-0 z-40 flex flex-col shadow-2xl"
+          style={{ width: 340, background: 'var(--color-frosted-white)', borderLeft: '1px solid var(--color-warm-stone)', fontFamily: 'var(--font-switzer)' }}
         >
           {/* Header */}
           <div
-            className="flex items-center justify-between px-4 py-3"
-            style={{ borderBottom: '1px solid #2b2b2b' }}
+            className="flex items-center justify-between px-4 py-3 bg-white"
+            style={{ borderBottom: '1px solid var(--color-warm-stone)' }}
           >
             <div>
-              <span style={{ fontSize: '13px', fontWeight: 500, color: '#f9f9f9' }}>
+              <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-charcoal-body)' }}>
                 Assumption Audit
               </span>
-              <span style={{ fontSize: '10px', color: '#9c9c9c', marginLeft: 8 }}>
+              <span style={{ fontSize: '11px', color: 'var(--color-slate-caption)', marginLeft: 8 }}>
                 {assumptions.length} found
               </span>
             </div>
             <button
               onClick={onClose}
-              className="material-symbols-outlined hover:opacity-70 transition-opacity"
-              style={{ fontSize: '18px', color: '#9c9c9c' }}
+              className="material-symbols-outlined hover:text-gray-800 transition-colors"
+              style={{ fontSize: '18px', color: 'var(--color-slate-caption)' }}
             >
               close
             </button>
@@ -60,11 +60,11 @@ export function AssumptionAuditPanel({
               <div>
                 <span
                   className="material-symbols-outlined block mb-2"
-                  style={{ fontSize: '32px', color: '#565656' }}
+                  style={{ fontSize: '32px', color: 'var(--color-slate-caption)' }}
                 >
                   help_outline
                 </span>
-                <p style={{ fontSize: '12px', color: '#565656', lineHeight: '1.5' }}>
+                <p style={{ fontSize: '12px', color: 'var(--color-slate-caption)', lineHeight: '1.5' }}>
                   No assumptions detected yet.
                   <br />
                   Speak or drop content to begin.
@@ -112,14 +112,14 @@ function AssumptionRow({
 
   return (
     <div
-      className="px-4 py-3 cursor-default transition-colors hover:bg-[#222222]"
-      style={{ borderBottom: '1px solid #2b2b2b' }}
+      className="px-4 py-4 cursor-default transition-colors hover:bg-gray-50"
+      style={{ borderBottom: '1px solid var(--color-warm-stone)' }}
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
     >
       <div className="flex items-start justify-between gap-2 mb-2">
         <ProvenanceBadge type={assumption.provenance_type} />
-        <span style={{ fontSize: '9px', color: '#565656' }}>
+        <span style={{ fontSize: '10px', color: 'var(--color-slate-caption)' }}>
           {assumption.impact_nodes.length} impacted
         </span>
       </div>
@@ -130,53 +130,52 @@ function AssumptionRow({
             value={overrideText}
             onChange={e => setOverrideText(e.target.value)}
             rows={3}
-            className="w-full resize-none p-2 text-[12px] leading-[1.4] outline-none"
+            className="w-full resize-none p-2 text-[12px] leading-[1.4] outline-none font-switzer"
             style={{
-              background:   '#111111',
-              border:       '1px solid #e5ff5d',
+              background:   '#ffffff',
+              border:       '1px solid var(--color-warm-stone)',
               borderRadius: '4px',
-              color:        '#f9f9f9',
+              color:        'var(--color-charcoal-body)',
             }}
           />
           <div className="flex gap-2 mt-1">
             <button
               onClick={() => { onOverride(overrideText); setEditing(false); }}
               className="px-2 py-1 text-[10px] font-medium"
-              style={{ background: '#e5ff5d', color: '#111111', borderRadius: '4px' }}
+              style={{ background: 'var(--color-graphite-ink)', color: 'var(--color-frosted-white)', borderRadius: '4px' }}
             >
               Apply Override
             </button>
             <button
               onClick={() => setEditing(false)}
-              style={{ fontSize: '10px', color: '#9c9c9c' }}
+              style={{ fontSize: '10px', color: 'var(--color-slate-caption)' }}
             >
               Cancel
             </button>
           </div>
         </div>
       ) : (
-        <p className="mb-2 text-[12px] leading-[1.4]" style={{ color: '#f9f9f9' }}>
+        <p className="mb-3 text-[13px] leading-[1.4]" style={{ color: 'var(--color-charcoal-body)' }}>
           {assumption.statement}
         </p>
       )}
 
       <ConfidenceBar confidence={assumption.confidence} />
 
-      <div className="flex gap-1 mt-2 flex-wrap">
+      <div className="flex gap-1.5 mt-3 flex-wrap">
         {[
-          { label: 'Accept',   icon: 'check',      action: onAccept,            style: '' },
-          { label: 'Override', icon: 'edit',        action: () => setEditing(true), style: '' },
-          { label: 'Ask AI',   icon: 'psychology',  action: onAskAI,             style: '' },
-          { label: 'Delete',   icon: 'delete',      action: onDelete,            style: 'color:#e84040;border-color:#e84040' },
+          { label: 'Accept',   icon: 'check',       action: onAccept,               style: 'color:#2e7d32;border-color:#2e7d32;background:#e8f5e9' },
+          { label: 'Override', icon: 'edit',        action: () => setEditing(true), style: 'color:var(--color-charcoal-body);border-color:var(--color-warm-stone);background:#ffffff' },
+          { label: 'Ask AI',   icon: 'psychology',  action: onAskAI,                style: 'color:var(--color-charcoal-body);border-color:var(--color-warm-stone);background:#ffffff' },
+          { label: 'Delete',   icon: 'delete',      action: onDelete,               style: 'color:#c62828;border-color:#c62828;background:#ffebee' },
         ].map(({ label, icon, action, style }) => (
           <button
             key={label}
             onClick={action}
-            className="flex items-center gap-0.5 px-1.5 py-0.5 transition-colors"
+            className="flex items-center gap-1 px-2 py-1 transition-colors hover:opacity-80 shadow-sm"
             style={{
               fontSize:     '10px',
-              color:        '#9c9c9c',
-              border:       '1px solid #565656',
+              fontWeight:   500,
               borderRadius: '4px',
               ...Object.fromEntries(
                 style.split(';').filter(Boolean).map(s => {
@@ -186,7 +185,7 @@ function AssumptionRow({
               ),
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '11px' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>
               {icon}
             </span>
             {label}

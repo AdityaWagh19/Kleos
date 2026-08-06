@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.DEV ? 'http://localhost:8000' : '');
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.DEV ? 'http://localhost:8000' : '');
 
 export class ApiError extends Error {
   status: number;
@@ -28,6 +28,8 @@ export const api = {
     request<T>(path, { method: 'POST', body: JSON.stringify(body) }),
   put: <T>(path: string, body: unknown) =>
     request<T>(path, { method: 'PUT', body: JSON.stringify(body) }),
+  patch: <T>(path: string, body: unknown) =>
+    request<T>(path, { method: 'PATCH', body: JSON.stringify(body) }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
   postFormData: <T>(path: string, formData: FormData) =>
     fetch(`${BASE_URL}${path}`, { method: 'POST', body: formData, credentials: 'include' })
@@ -36,3 +38,33 @@ export const api = {
         return res.json() as Promise<T>;
       }),
 };
+
+/**
+ * Open a Server-Sent Events stream. Returns the EventSource and a close() function.
+ * Credentials (cookies) are always included.
+ */
+export function openStream(
+  path: string,
+  onMessage: (payload: Record<string, unknown>) => void,
+  onDone: () => void,
+  onError: (msg: string) => void,
+): { es: EventSource; close: () => void } {
+  const url = `${BASE_URL}${path}`;
+  const es = new EventSource(url, { withCredentials: true });
+  es.onmessage = (e) => {
+    try {
+      const payload = JSON.parse(e.data as string) as Record<string, unknown>;
+      if (payload.type === 'done') {
+        onDone();
+        es.close();
+      } else {
+        onMessage(payload);
+      }
+    } catch { /* ignore malformed frames */ }
+  };
+  es.onerror = () => {
+    onError('SSE connection error');
+    es.close();
+  };
+  return { es, close: () => es.close() };
+}

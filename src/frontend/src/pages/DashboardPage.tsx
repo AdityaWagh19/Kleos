@@ -58,6 +58,17 @@ export default function DashboardPage() {
     }
   };
 
+  const handleDeleteCanvas = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!confirm('Are you sure you want to delete this canvas?')) return;
+    try {
+      await api.delete(`/api/canvas/${id}`);
+      fetchCanvases();
+    } catch {
+      setError('Failed to delete workspace.');
+    }
+  };
+
   const greeting = () => {
     const h = new Date().getHours();
     if (h < 12) return 'Good morning';
@@ -174,9 +185,18 @@ export default function DashboardPage() {
                 >
                   {canvas.workspace_mode}
                 </span>
-                <span className="material-symbols-outlined text-[16px] text-[#c0c0c0] group-hover:text-[#141414] transition-colors">
-                  arrow_forward
-                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={(e) => handleDeleteCanvas(e, canvas.id)}
+                    className="material-symbols-outlined text-[16px] text-red-300 opacity-0 group-hover:opacity-100 hover:text-red-500 hover:bg-red-50 rounded p-1 transition-all"
+                    title="Delete canvas"
+                  >
+                    delete
+                  </button>
+                  <span className="material-symbols-outlined text-[16px] text-[#c0c0c0] group-hover:text-[#141414] transition-colors p-1">
+                    arrow_forward
+                  </span>
+                </div>
               </div>
 
               {/* Bottom content */}

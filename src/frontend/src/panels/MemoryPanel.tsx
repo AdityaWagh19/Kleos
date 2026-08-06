@@ -38,33 +38,47 @@ export function MemoryPanel({ open, canvasId, onClose }: Props) {
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: '-100%', opacity: 0 }}
           transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-          className="absolute left-0 top-0 bottom-0 z-30 flex flex-col"
-          style={{ width: 288, background: '#1a1a1a', borderRight: '1px solid #2b2b2b' }}
+          className={`fixed top-[48px] bottom-0 left-0 w-[420px] shadow-2xl z-40 transition-transform duration-300 ease-out flex flex-col ${
+            open ? 'translate-x-0' : '-translate-x-full'
+          }`}
+          style={{
+            background: 'var(--color-frosted-white)',
+            borderRight: '1px solid var(--color-warm-stone)',
+            fontFamily: 'var(--font-switzer)',
+          }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid #2b2b2b' }}>
-            <span style={{ fontSize: '13px', fontWeight: 500, color: '#f9f9f9' }}>Memory</span>
-            <button onClick={onClose} className="material-symbols-outlined" style={{ fontSize: '18px', color: '#9c9c9c' }}>close</button>
+          <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'var(--color-warm-stone)' }}>
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined" style={{ color: 'var(--color-charcoal-body)' }}>memory</span>
+              <h2 className="text-sm font-semibold" style={{ color: 'var(--color-charcoal-body)' }}>Workspace Memory</h2>
+            </div>
+            <button
+              onClick={onClose}
+              className="material-symbols-outlined text-gray-500 hover:text-gray-800 transition-colors"
+            >
+              close
+            </button>
           </div>
 
           {/* Search */}
-          <div className="px-3 py-2" style={{ borderBottom: '1px solid #2b2b2b' }}>
+          <div className="px-3 py-2 border-b" style={{ borderColor: 'var(--color-warm-stone)' }}>
             <div className="flex items-center gap-2 px-2 py-1.5"
-                 style={{ background: '#111111', border: '1px solid #565656', borderRadius: '4px' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#565656' }}>search</span>
+                 style={{ background: '#ffffff', border: '1px solid var(--color-warm-stone)', borderRadius: '4px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '14px', color: '#9ca3af' }}>search</span>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Search memories..."
                 className="flex-1 outline-none"
-                style={{ background: 'transparent', fontSize: '12px', color: '#f9f9f9' }}
+                style={{ background: 'transparent', fontSize: '12px', color: 'var(--color-charcoal-body)' }}
               />
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="flex" style={{ borderBottom: '1px solid #2b2b2b' }}>
+          <div className="flex border-b" style={{ borderColor: 'var(--color-warm-stone)' }}>
             {(Object.keys(tabData) as Tab[]).map(tab => (
               <button
                 key={tab}
@@ -72,11 +86,11 @@ export function MemoryPanel({ open, canvasId, onClose }: Props) {
                 className="flex-1 py-2 transition-colors"
                 style={{
                   fontSize:    '10px',
-                  fontWeight:  500,
+                  fontWeight:  600,
                   letterSpacing: '0.04em',
                   textTransform: 'uppercase',
-                  color:       activeTab === tab ? '#e5ff5d' : '#565656',
-                  borderBottom: activeTab === tab ? '2px solid #e5ff5d' : '2px solid transparent',
+                  color:       activeTab === tab ? '#000000' : '#6b7280',
+                  borderBottom: activeTab === tab ? '2px solid #000000' : '2px solid transparent',
                 }}
               >
                 {tabData[tab].label}
@@ -89,10 +103,10 @@ export function MemoryPanel({ open, canvasId, onClose }: Props) {
 
           {/* Pending banner */}
           {activeTab === 'pending' && tier2.length > 0 && (
-            <div className="mx-3 mt-2 p-2" style={{
-              background: '#2b1a00', border: '1px solid #f5c842', borderRadius: '4px'
+            <div className="mx-3 mt-2 p-2 rounded" style={{
+              background: '#fff3e0', border: '1px solid #ffe0b2'
             }}>
-              <p style={{ fontSize: '11px', color: '#f5c842', lineHeight: '1.4' }}>
+              <p style={{ fontSize: '11px', color: '#e65100', lineHeight: '1.4' }}>
                 These have not influenced any response yet. Review before accepting.
               </p>
             </div>
@@ -103,10 +117,10 @@ export function MemoryPanel({ open, canvasId, onClose }: Props) {
             <div className="flex-1 flex items-center justify-center p-6 text-center">
               <div>
                 <span className="material-symbols-outlined block mb-2"
-                      style={{ fontSize: '28px', color: '#565656' }}>
+                      style={{ fontSize: '28px', color: 'var(--color-slate-caption)' }}>
                   {activeTab === 'pending' ? 'pending_actions' : 'memory'}
                 </span>
-                <p style={{ fontSize: '11px', color: '#565656', lineHeight: '1.5' }}>
+                <p style={{ fontSize: '11px', color: 'var(--color-slate-caption)', lineHeight: '1.5' }}>
                   {activeTab === 'pending'
                     ? 'No pending memories.\nKleos will ask before storing anything.'
                     : 'No memories stored yet.\nKleos will only remember what you approve.'}
@@ -146,24 +160,24 @@ function MemoryItem({
   const [editing, setEditing] = useState(false);
   const [text, setText]       = useState(memory.text);
 
-  const TIER_COLORS: Record<number, string> = { 0: '#4caf7d', 1: '#4a90d9', 2: '#f5c842', 3: '#9c9c9c' };
+  const TIER_COLORS: Record<number, string> = { 0: '#2e7d32', 1: '#1565c0', 2: '#e65100', 3: 'var(--color-slate-caption)' };
   const TIER_LABELS: Record<number, string> = { 0: 'Core', 1: 'Session', 2: 'Pending', 3: 'Source' };
 
   return (
-    <div className="px-3 py-2.5 transition-colors hover:bg-[#222222]"
-         style={{ borderBottom: '1px solid #2b2b2b' }}>
+    <div className="px-3 py-2.5 transition-colors hover:bg-gray-50"
+         style={{ borderBottom: '1px solid var(--color-warm-stone)' }}>
       <div className="flex items-start justify-between mb-1">
-        <span style={{ fontSize: '9px', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.04em',
+        <span style={{ fontSize: '9px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em',
                        color: TIER_COLORS[memory.tier as 0|1|2|3] }}>
           {TIER_LABELS[memory.tier as 0|1|2|3]}
         </span>
         <div className="flex items-center gap-1.5">
           {memory.freshness?.stale && (
-            <span className="material-symbols-outlined" style={{ fontSize: '11px', color: '#f5c842' }} title="May be outdated">
+            <span className="material-symbols-outlined" style={{ fontSize: '11px', color: '#e65100' }} title="May be outdated">
               warning
             </span>
           )}
-          <span style={{ fontSize: '9px', color: '#565656' }}>
+          <span style={{ fontSize: '9px', color: 'var(--color-slate-caption)' }}>
             {memory.freshness?.age_label || new Date(memory.created_at).toLocaleDateString()}
           </span>
         </div>
@@ -175,23 +189,23 @@ function MemoryItem({
             value={text}
             onChange={e => setText(e.target.value)}
             rows={2}
-            className="w-full resize-none p-1.5 outline-none"
-            style={{ background: '#111111', border: '1px solid #e5ff5d', borderRadius: '4px',
-                     fontSize: '11px', color: '#f9f9f9' }}
+            className="w-full resize-none p-1.5 outline-none font-switzer text-[12px]"
+            style={{ background: '#ffffff', border: '1px solid var(--color-warm-stone)', borderRadius: '4px',
+                     color: 'var(--color-charcoal-body)' }}
           />
           <div className="flex gap-2 mt-1">
             <button onClick={() => { onUpdate(text); setEditing(false); }}
-                    style={{ fontSize: '10px', fontWeight: 500, background: '#e5ff5d',
-                             color: '#111111', borderRadius: '4px', padding: '2px 8px' }}>
+                    style={{ fontSize: '10px', fontWeight: 500, background: 'var(--color-graphite-ink)',
+                             color: 'var(--color-frosted-white)', borderRadius: '4px', padding: '2px 8px' }}>
               Save
             </button>
-            <button onClick={() => setEditing(false)} style={{ fontSize: '10px', color: '#9c9c9c' }}>
+            <button onClick={() => setEditing(false)} style={{ fontSize: '10px', color: 'var(--color-slate-caption)' }}>
               Cancel
             </button>
           </div>
         </div>
       ) : (
-        <p style={{ fontSize: '12px', color: '#f9f9f9', lineHeight: '1.4', marginBottom: 8 }}>
+        <p style={{ fontSize: '12px', color: 'var(--color-charcoal-body)', lineHeight: '1.4', marginBottom: 8 }}>
           {memory.text}
         </p>
       )}
@@ -200,21 +214,21 @@ function MemoryItem({
       {showRatify && !editing && (
         <div className="flex gap-1 flex-wrap mb-1">
           {([
-            { scope: 'global',    label: 'Remember Always',   color: '#4caf7d' },
-            { scope: 'workspace', label: 'This Project',      color: '#4a90d9' },
-            { scope: 'session',   label: 'This Session',      color: '#9c4af5' },
-          ] as Array<{ scope: MemoryScope; label: string; color: string }>).map(({ scope, label, color }) => (
+            { scope: 'global',    label: 'Remember Always',   color: '#2e7d32', bg: '#e8f5e9' },
+            { scope: 'workspace', label: 'This Project',      color: '#1565c0', bg: '#e3f2fd' },
+            { scope: 'session',   label: 'This Session',      color: '#6a1b9a', bg: '#f3e5f5' },
+          ] as Array<{ scope: MemoryScope; label: string; color: string; bg: string }>).map(({ scope, label, color, bg }) => (
             <button key={scope} onClick={() => onRatify(scope)}
-                    className="px-1.5 py-0.5 transition-colors"
-                    style={{ fontSize: '9px', fontWeight: 500, background: `${color}20`,
+                    className="px-1.5 py-0.5 transition-colors font-semibold"
+                    style={{ fontSize: '9px', background: bg,
                              border: `1px solid ${color}`, color, borderRadius: '4px' }}>
               {label}
             </button>
           ))}
           <button onClick={onArchive}
-                  className="px-1.5 py-0.5 transition-colors"
-                  style={{ fontSize: '9px', fontWeight: 500, border: '1px solid #e84040',
-                           color: '#e84040', borderRadius: '4px' }}>
+                  className="px-1.5 py-0.5 transition-colors font-semibold"
+                  style={{ fontSize: '9px', border: '1px solid #c62828',
+                           color: '#c62828', borderRadius: '4px' }}>
             Reject
           </button>
         </div>
@@ -228,8 +242,8 @@ function MemoryItem({
             { icon: 'archive', label: 'Archive', action: onArchive },
           ].map(({ icon, label, action }) => (
             <button key={label} onClick={action}
-                    className="flex items-center gap-0.5 px-1.5 py-0.5 transition-colors"
-                    style={{ fontSize: '9px', color: '#9c9c9c', border: '1px solid #565656',
+                    className="flex items-center gap-0.5 px-1.5 py-0.5 transition-colors bg-white hover:bg-gray-100 shadow-sm"
+                    style={{ fontSize: '9px', color: 'var(--color-charcoal-body)', border: '1px solid var(--color-warm-stone)',
                              borderRadius: '4px' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>{icon}</span>
               {label}

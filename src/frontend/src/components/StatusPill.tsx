@@ -6,9 +6,9 @@ const CONFIG: Record<
   StatusPillState,
   { label: string; dotColor: string; animate: boolean; icon: string | null; clickable: boolean }
 > = {
-  working:   { label: 'Working...', dotColor: '#4a90d9', animate: true,  icon: null,  clickable: true  },
-  listening: { label: 'Listening',  dotColor: '#e5ff5d', animate: true,  icon: 'mic', clickable: false },
-  ready:     { label: 'Ready',      dotColor: '#4caf7d', animate: false, icon: null,  clickable: false },
+  working:   { label: 'Working...', dotColor: '#f5c842', animate: true,  icon: null,  clickable: true  },
+  listening: { label: 'Listening',  dotColor: '#e84040', animate: true,  icon: 'mic', clickable: false },
+  ready:     { label: 'Ready',      dotColor: '#7dcfb6', animate: false, icon: null,  clickable: false },
 };
 
 interface Props {
@@ -21,24 +21,27 @@ export function StatusPill({ state, lastSteps = [] }: Props) {
   const cfg = CONFIG[state];
 
   return (
-    <div className="relative">
+    <div className="relative font-switzer z-50">
       <button
+        role="status"
+        aria-label={`Canvas status: ${cfg.label}`}
+        aria-live="polite"
         disabled={!cfg.clickable}
         onClick={() => cfg.clickable && setShowTooltip(s => !s)}
-        className="flex items-center gap-1.5 px-2 py-1 transition-colors disabled:cursor-default"
+        className="flex items-center gap-1.5 px-3 py-1.5 transition-colors disabled:cursor-default outline-none shadow-sm"
         style={{
-          background:   '#2b2b2b',
-          border:       '1px solid #565656',
-          borderRadius: '4px',
+          background:   'var(--color-warm-stone)',
+          border:       '1px solid var(--color-quartz)',
+          borderRadius: '200px', // Pill shape
           fontSize:     '11px',
           fontWeight:   500,
-          color:        '#9c9c9c',
+          color:        'var(--color-charcoal-body)',
         }}
       >
         {cfg.icon ? (
           <motion.span
             className="material-symbols-outlined"
-            style={{ fontSize: '12px', color: cfg.dotColor }}
+            style={{ fontSize: '14px', color: cfg.dotColor }}
             animate={{ opacity: [1, 0.4, 1] }}
             transition={{ duration: 1.2, repeat: Infinity }}
           >
@@ -51,9 +54,10 @@ export function StatusPill({ state, lastSteps = [] }: Props) {
               height:       8,
               borderRadius: '50%',
               background:   cfg.dotColor,
+              boxShadow:    cfg.animate ? `0 0 6px ${cfg.dotColor}` : 'none',
             }}
-            animate={cfg.animate ? { opacity: [1, 0.3, 1] } : {}}
-            transition={{ duration: 1.2, repeat: Infinity }}
+            animate={cfg.animate ? { opacity: [1, 0.5, 1], scale: [1, 0.9, 1] } : {}}
+            transition={{ duration: 1.5, repeat: Infinity }}
           />
         )}
         {cfg.label}
@@ -62,27 +66,28 @@ export function StatusPill({ state, lastSteps = [] }: Props) {
       {/* Tooltip: last 3 ribbon steps */}
       {showTooltip && lastSteps.length > 0 && (
         <div
-          className="absolute top-full mt-1 right-0 z-50"
+          className="absolute top-full mt-2 right-0 z-50 shadow-xl"
           style={{
-            width:        260,
-            background:   '#2b2b2b',
-            border:       '1px solid #565656',
-            borderRadius: '8px',
-            padding:      '8px',
+            width:        280,
+            background:   'var(--color-frosted-white)',
+            border:       '1px solid var(--color-warm-stone)',
+            borderRadius: '12px',
+            padding:      '12px',
           }}
           onMouseLeave={() => setShowTooltip(false)}
         >
+          <h4 className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-2">Recent Thinking Steps</h4>
           {lastSteps.slice(-3).map((s, i) => (
             <div
               key={i}
-              className="py-1"
+              className="py-1.5"
               style={{
                 fontSize:    '11px',
-                color:       '#9c9c9c',
-                borderBottom: i < 2 ? '1px solid #565656' : 'none',
+                color:       'var(--color-slate-caption)',
+                borderBottom: i < Math.min(lastSteps.length, 3) - 1 ? '1px solid var(--color-warm-stone)' : 'none',
               }}
             >
-              <span style={{ color: '#f9f9f9' }}>{s.action.replace(/_/g, ' ')}</span>
+              <span style={{ color: 'var(--color-charcoal-body)', fontWeight: 500 }}>{s.action.replace(/_/g, ' ')}</span>
               {' — '}
               {s.detail}
             </div>

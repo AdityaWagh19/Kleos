@@ -21,11 +21,11 @@ html, body, #root {
 
 /* react-flow overrides — keep canvas background correct */
 .react-flow__renderer {
-  background: #111111;
+  background: var(--color-linen-canvas);
 }
 
 .react-flow__background {
-  background: #111111;
+  background: var(--color-linen-canvas);
 }
 
 /* Material Symbols — ensure icon font renders correctly */

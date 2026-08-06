@@ -76,6 +76,7 @@ export interface KleosEdge {
   target: string;
   type: RelationType;
   confidence: Confidence;
+  label?: string;
 }
 
 export interface Memory {

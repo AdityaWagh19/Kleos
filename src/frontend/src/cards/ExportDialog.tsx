@@ -22,9 +22,11 @@ export function ExportDialog({ open, canvasId, branchId, onClose }: Props) {
   const [type,     setType]     = useState<ExportType>('decision_summary');
   const [loading,  setLoading]  = useState(false);
   const [progress, setProgress] = useState(0);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   const handleExport = async () => {
     setLoading(true);
+    setExportError(null);
     const base = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
     const qs   = `branch_id=${branchId}&export_type=${type}`;
 
@@ -50,7 +52,7 @@ export function ExportDialog({ open, canvasId, branchId, onClose }: Props) {
         URL.revokeObjectURL(url);
       }
     } catch (err) {
-      alert(`Export failed: ${err}`);
+      setExportError(`Export failed: ${String(err)}`);
     } finally {
       setLoading(false);
       setProgress(0);
@@ -64,34 +66,35 @@ export function ExportDialog({ open, canvasId, branchId, onClose }: Props) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ background: 'rgba(17,17,17,0.8)' }}
+          className="fixed inset-0 z-50 flex items-center justify-center font-switzer"
+          style={{ background: 'rgba(237, 237, 232, 0.4)', backdropFilter: 'blur(2px)' }}
           onClick={e => { if (e.target === e.currentTarget) onClose(); }}
         >
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
-            style={{ width: 384, background: '#1a1a1a', border: '1px solid #2b2b2b', borderRadius: '12px', padding: 20 }}
+            style={{ width: 400, background: 'var(--color-frosted-white)', border: '1px solid var(--color-warm-stone)', borderRadius: '12px', padding: 24, boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }}
           >
-            <div className="flex justify-between items-center mb-4">
-              <h3 style={{ fontSize: '16px', fontWeight: 500, color: '#f9f9f9', margin: 0 }}>Export Canvas</h3>
-              <button onClick={onClose} className="material-symbols-outlined"
-                      style={{ fontSize: '18px', color: '#9c9c9c' }}>close</button>
+            <div className="flex justify-between items-center mb-6">
+              <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--color-charcoal-body)', margin: 0 }}>Export Canvas</h3>
+              <button onClick={onClose} className="material-symbols-outlined hover:text-gray-800 transition-colors"
+                      style={{ fontSize: '20px', color: 'var(--color-slate-caption)' }}>close</button>
             </div>
 
             {/* Format */}
-            <p style={{ fontSize: '11px', color: '#9c9c9c', textTransform: 'uppercase',
-                        letterSpacing: '0.04em', marginBottom: 8 }}>Format</p>
-            <div className="flex gap-2 mb-4">
+            <p style={{ fontSize: '11px', color: 'var(--color-slate-caption)', textTransform: 'uppercase',
+                        letterSpacing: '0.04em', marginBottom: 8, fontWeight: 600 }}>Format</p>
+            <div className="flex gap-2 mb-6">
               {(['markdown', 'pdf'] as ExportFormat[]).map(f => (
                 <button key={f} onClick={() => setFormat(f)}
                         style={{
-                          flex: 1, padding: '8px', borderRadius: '4px',
+                          flex: 1, padding: '10px', borderRadius: '6px',
                           fontSize: '12px', fontWeight: 500,
-                          background: format === f ? '#e5ff5d' : 'transparent',
-                          color:      format === f ? '#111111' : '#9c9c9c',
-                          border:     format === f ? '1px solid #e5ff5d' : '1px solid #565656',
+                          background: format === f ? 'var(--color-graphite-ink)' : 'transparent',
+                          color:      format === f ? 'var(--color-frosted-white)' : 'var(--color-slate-caption)',
+                          border:     format === f ? '1px solid var(--color-graphite-ink)' : '1px solid var(--color-warm-stone)',
+                          transition: 'all 0.2s',
                         }}>
                   {f.toUpperCase()}
                 </button>
@@ -99,48 +102,55 @@ export function ExportDialog({ open, canvasId, branchId, onClose }: Props) {
             </div>
 
             {/* Content type */}
-            <p style={{ fontSize: '11px', color: '#9c9c9c', textTransform: 'uppercase',
-                        letterSpacing: '0.04em', marginBottom: 8 }}>Content</p>
+            <p style={{ fontSize: '11px', color: 'var(--color-slate-caption)', textTransform: 'uppercase',
+                        letterSpacing: '0.04em', marginBottom: 8, fontWeight: 600 }}>Content</p>
             {TYPES.map(({ value, label, desc }) => (
               <button key={value} onClick={() => setType(value)}
-                      className="w-full text-left px-3 py-2 mb-1.5 transition-colors"
+                      className="w-full text-left px-3 py-2.5 mb-2 transition-colors"
                       style={{
-                        borderRadius: '4px', fontSize: '12px',
-                        background:   type === value ? '#2b2b2b' : 'transparent',
-                        border:       type === value ? '1px solid #565656' : '1px solid transparent',
+                        borderRadius: '6px', fontSize: '12px',
+                        background:   type === value ? '#ffffff' : 'transparent',
+                        border:       type === value ? '1px solid var(--color-warm-stone)' : '1px solid transparent',
+                        boxShadow:    type === value ? '0 2px 8px rgba(0,0,0,0.02)' : 'none',
                       }}>
-                <span style={{ color: '#f9f9f9', fontWeight: 500 }}>{label}</span>
-                <span style={{ color: '#9c9c9c', marginLeft: 8 }}>{desc}</span>
+                <span style={{ color: 'var(--color-charcoal-body)', fontWeight: 600 }}>{label}</span>
+                <span style={{ color: 'var(--color-slate-caption)', marginLeft: 8 }}>{desc}</span>
               </button>
             ))}
 
             {/* PDF progress bar */}
             {loading && format === 'pdf' && (
-              <div className="mb-3 mt-3">
-                <div style={{ height: 4, background: '#2b2b2b', borderRadius: '9999px', overflow: 'hidden' }}>
+              <div className="mb-3 mt-4">
+                <div style={{ height: 4, background: 'var(--color-warm-stone)', borderRadius: '9999px', overflow: 'hidden' }}>
                   <motion.div
-                    style={{ height: '100%', background: '#e5ff5d', borderRadius: '9999px' }}
+                    style={{ height: '100%', background: 'var(--color-graphite-ink)', borderRadius: '9999px' }}
                     animate={{ width: `${progress}%` }}
                     transition={{ duration: 0.3 }}
                   />
                 </div>
-                <p style={{ fontSize: '11px', color: '#9c9c9c', marginTop: 4 }}>
+                <p style={{ fontSize: '11px', color: 'var(--color-slate-caption)', marginTop: 6, fontWeight: 500 }}>
                   Generating PDF...
                 </p>
+              </div>
+            )}
+
+            {exportError && (
+              <div role="alert" className="mt-4" style={{ color: 'var(--color-error, #d44)', fontSize: '12px' }}>
+                {exportError}
               </div>
             )}
 
             <button
               onClick={handleExport}
               disabled={loading}
-              className="w-full mt-4 py-2.5 transition-opacity"
+              className="w-full mt-6 py-3 transition-all hover:bg-[#292929]"
               style={{
-                background:   '#e5ff5d',
-                color:        '#111111',
-                fontSize:     '13px',
-                fontWeight:   500,
-                borderRadius: '4px',
-                opacity:      loading ? 0.5 : 1,
+                background:   'var(--color-graphite-ink)',
+                color:        'var(--color-frosted-white)',
+                fontSize:     '14px',
+                fontWeight:   600,
+                borderRadius: '6px',
+                opacity:      loading ? 0.7 : 1,
               }}
             >
               {loading ? 'Generating...' : 'Export'}
