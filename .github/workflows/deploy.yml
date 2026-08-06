@@ -7,8 +7,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  FRONTEND_IMAGE: ghcr.io/${{ github.repository }}/kleos-frontend
-  BACKEND_IMAGE: ghcr.io/${{ github.repository }}/kleos-backend
+  FRONTEND_IMAGE: ghcr.io/adityawagh19/kleos/kleos-frontend
+  BACKEND_IMAGE: ghcr.io/adityawagh19/kleos/kleos-backend
 
 jobs:
   build-and-push:
@@ -85,8 +85,6 @@ jobs:
             
             # Login to GHCR to pull private images (if repository is private)
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            
-            export GITHUB_REPOSITORY=${{ github.repository }}
             
             # Pull latest images and restart
             docker compose -f docker-compose.prod.yml pull
