@@ -232,7 +232,7 @@ export default function App() {
   if (error || !canvasId) return (
     <div className="flex h-screen w-screen items-center justify-center text-center p-6"
          style={{ background: '#111111', color: '#e84040', fontSize: '12px' }}>
-      Failed to connect to backend. Is it running on port 8000?<br />{error}
+      Failed to connect to the Kleos AI service. Please try again later.<br />{error}
     </div>
   );
 
