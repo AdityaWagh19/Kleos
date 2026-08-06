@@ -21,3 +21,4 @@ pdfkit
 authlib
 httpx
 itsdangerous
+email-validator
