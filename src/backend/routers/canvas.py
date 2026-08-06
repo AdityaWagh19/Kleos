@@ -1,12 +1,13 @@
 import uuid
 import io
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from fastapi.responses import Response as HttpResponse
 from pydantic import BaseModel
 from db.supabase import get_client
 from db.queries import log_event
 from services import llm_service, canvas_service
 from services import export_service
+from deps import get_current_user, get_optional_user
 
 # ---------------------------------------------------------------------------
 # Branch endpoints
@@ -24,13 +25,14 @@ class CreateCanvasRequest(BaseModel):
 
 
 @router.post("/canvas")
-async def create_canvas(req: CreateCanvasRequest):
+async def create_canvas(req: CreateCanvasRequest, user: dict | None = Depends(get_optional_user)):
     sb = get_client()
     canvas_id = str(uuid.uuid4())
     branch_id = str(uuid.uuid4())
     sb.table("canvases").insert({
         "id": canvas_id,
         "workspace_mode": req.workspace_mode,
+        "user_id": user["id"] if user else None,
     }).execute()
     sb.table("branches").insert({
         "id": branch_id,
@@ -38,6 +40,13 @@ async def create_canvas(req: CreateCanvasRequest):
         "name": "main",
     }).execute()
     return {"id": canvas_id, "branch_id": branch_id}
+
+
+@router.get("/canvases")
+async def list_canvases(user: dict = Depends(get_current_user)):
+    sb = get_client()
+    res = sb.table("canvases").select("*").eq("user_id", user["id"]).order("created_at", desc=True).execute()
+    return {"canvases": res.data}
 
 
 @router.get("/canvas/{canvas_id}")

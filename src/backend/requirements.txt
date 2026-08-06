@@ -18,3 +18,5 @@ sse-starlette
 python-dotenv
 pyppeteer
 pdfkit
+authlib
+httpx
