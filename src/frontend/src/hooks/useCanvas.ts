@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { type Node, type Edge, type Connection } from 'reactflow';
+import { type Node, type Edge } from 'reactflow';
 import { api } from '../services/api';
 import type { KleosNode, KleosEdge, CanvasState, MemoryScope, StatusPillState, RelationType, Confidence } from '../types';
 

@@ -27,6 +27,7 @@ import { ActivityLog } from './panels/ActivityLog';
 import { SuggestionChips } from './onboarding/SuggestionChips';
 import { VoiceTranscript } from './components/VoiceTranscript';
 import { ReasoningRibbon } from './components/ReasoningRibbon';
+import { NodeMergeDialog } from './workspace/NodeMergeDialog';
 
 import type {
   WorkspaceMode, Assumption, Branch, ReasoningStep,
@@ -376,7 +377,7 @@ export default function App() {
         nodes={nodes}
         onCancel={() => setMergeDialogOpen(false)}
         onConfirm={async () => {
-          await mergeNodes(selectedNodeIds, branchId);
+          await mergeNodes(selectedNodeIds);
           setMergeDialogOpen(false);
         }}
       />

@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface Props {
   nodeId: string;
@@ -18,7 +18,7 @@ interface Props {
 }
 
 export function NodeContextMenu({
-  nodeId, nodeText, x, y, isPinned, selectedNodeIds,
+  nodeId, nodeText: _nodeText, x, y, isPinned, selectedNodeIds,
   onEdit, onPin, onDelete, onMerge, onCreateEdgeFrom, onViewProvenance, onAskAI, onClose
 }: Props) {
   const canMerge = selectedNodeIds.length > 1 && selectedNodeIds.includes(nodeId);

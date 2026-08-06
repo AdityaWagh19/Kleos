@@ -5,7 +5,6 @@ import ReactFlow, {
   BackgroundVariant,
   MiniMap,
   useReactFlow,
-  type Connection,
   type NodeMouseHandler,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -54,10 +53,13 @@ export function KleosCanvas({ canvasId, branchId, onNodesLoaded, onNodeSelect }:
   // Node Context Menu State
   const [contextMenu, setContextMenu] = useState<{ id: string; x: number; y: number; pinned: boolean; text: string } | null>(null);
 
+  // Track selected node IDs for context menu merge action
+  const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
+
   const onSelectionChange = useCallback(({ nodes }: { nodes: any[] }) => {
-    if (onNodeSelect) {
-      onNodeSelect(nodes.map(n => n.id));
-    }
+    const ids = nodes.map(n => n.id);
+    setSelectedNodeIds(ids);
+    if (onNodeSelect) onNodeSelect(ids);
   }, [onNodeSelect]);
 
   // Editing state (passed via data to BaseNode if needed, but handled globally here for MVP)
