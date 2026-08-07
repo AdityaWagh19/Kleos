@@ -4,7 +4,7 @@ websockets
 openai
 supabase
 redis[hiredis]
-celery[redis]
+celery
 pymupdf
 python-docx
 python-pptx

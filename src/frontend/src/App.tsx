@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { api, openStream } from './services/api';
 import { useVoice } from './hooks/useVoice';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -14,6 +14,7 @@ import { SourcesToggle } from './workspace/SourcesToggle';
 import { ShortcutLegend } from './workspace/ShortcutLegend';
 
 // Canvas
+import { ReactFlowProvider } from 'reactflow';
 import { KleosCanvas } from './canvas/KleosCanvas';
 import { useCanvas } from './hooks/useCanvas';
 
@@ -23,7 +24,7 @@ import { AssumptionAuditPanel } from './panels/AssumptionAuditPanel';
 import { MemoryNegotiationCard } from './cards/MemoryNegotiationCard';
 import { SessionMemoryAuditCard } from './cards/SessionMemoryAuditCard';
 import { ExportDialog } from './cards/ExportDialog';
-import { ActivityLog } from './panels/ActivityLog';
+// Removed unused ActivityLog
 import { SuggestionChips } from './onboarding/SuggestionChips';
 import { VoiceTranscript } from './components/VoiceTranscript';
 import { ReasoningRibbon } from './components/ReasoningRibbon';
@@ -36,8 +37,6 @@ import type {
 
 export default function App() {
   const { canvasId: urlCanvasId } = useParams<{ canvasId: string }>();
-  const navigate = useNavigate();
-  
   // ── Core State ───────────────────────────────────────────────────────────
   const [canvasId, setCanvasId] = useState<string | null>(urlCanvasId || null);
   const [branchId, setBranchId] = useState<string>('');
@@ -67,7 +66,7 @@ export default function App() {
 
   // ── Audit & Negotiation ──────────────────────────────────────────────────
   const [showAuditCard, setShowAuditCard] = useState(false);
-  const [auditItems, setAuditItems] = useState<any[]>([]);
+  const [auditItems] = useState<any[]>([]);
   const [negCardOpen, setNegCardOpen] = useState(false);
   const [negCardObs, setNegCardObs] = useState('');
   const [assumptions, setAssumptions] = useState<Assumption[]>([]);
@@ -195,6 +194,7 @@ export default function App() {
       if (s === 'listening' || s === 'reconnecting') setPillState('listening');
       else if (s === 'idle') setPillState('ready');
     },
+    onTranscript: () => {},
   });
 
   // ── Keyboard Shortcuts ───────────────────────────────────────────────────
@@ -263,13 +263,15 @@ export default function App() {
         
         {/* Left Rail */}
         <CanvasLeftRail
-          nodes={nodes}
+          nodes={nodes.map(n => n.data)}
           onNodeSelect={() => {}} // phase 6 focus
         />
 
         {/* Canvas (ReactFlow) */}
         <div className="flex-1 relative">
-          <KleosCanvas canvasId={canvasId} branchId={branchId} onNodeSelect={setSelectedNodeIds} />
+          <ReactFlowProvider>
+            <KleosCanvas canvasId={canvasId} branchId={branchId} onNodeSelect={setSelectedNodeIds} />
+          </ReactFlowProvider>
 
           <SuggestionChips
             visible={nodes.length === 0}
@@ -374,7 +376,7 @@ export default function App() {
       <NodeMergeDialog
         open={mergeDialogOpen}
         selectedNodeIds={selectedNodeIds}
-        nodes={nodes}
+        nodes={nodes.map(n => n.data)}
         onCancel={() => setMergeDialogOpen(false)}
         onConfirm={async () => {
           await mergeNodes(selectedNodeIds);
