@@ -67,14 +67,6 @@ export function MemoryNegotiationCard({ open, observation, onChoice }: Props) {
               </button>
             ))}
           </div>
-
-          <button
-            onClick={() => onChoice('later')}
-            className="mt-3 w-full transition-colors hover:text-gray-800"
-            style={{ fontSize: '11px', color: 'var(--color-slate-caption)' }}
-          >
-            Dismiss (Esc)
-          </button>
         </motion.div>
       )}
     </AnimatePresence>

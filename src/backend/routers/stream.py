@@ -12,11 +12,12 @@ Flow:
 
 import json
 import asyncio
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from services.llm_service import compile_document, evaluate_memory_card_trigger
 from services import canvas_service
 from db.supabase import get_client
+from deps import verify_canvas_ownership
 
 router = APIRouter()
 
@@ -26,13 +27,12 @@ IMMEDIATE_STEPS = [
     {"event": "reasoning_step", "step": 3, "action": "classifying_nodes", "detail": "Tagging node types and provenance",               "confidence": "medium"},
 ]
 
-
 @router.get("/canvas/{canvas_id}/stream")
 async def stream_canvas(
     canvas_id: str,
     text: str = "",
-    workspace_mode: str = "analytical",
     branch_id: str = "",
+    user: dict = Depends(verify_canvas_ownership)
 ):
     # Always read workspace_mode from DB to ensure it reflects the user's current selection
     if canvas_id and canvas_id != "test":
@@ -65,7 +65,7 @@ async def stream_canvas(
         nodes_created = 0
         if branch_id and canvas_id and canvas_id != "test" and branch_id != "test":
             try:
-                nodes_created = canvas_service.apply_compilation(
+                nodes_created = await canvas_service.apply_compilation(
                     canvas_id, branch_id, compilation, "text", workspace_mode
                 )
             except Exception as e:

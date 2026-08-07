@@ -12,12 +12,19 @@ export function useCanvas(canvasId: string, branchId: string) {
   const [activeSourceFilter, setActiveSourceFilter] = useState<string | null>(null);
   const compilingNodeIds = useRef<string[]>([]);
 
+  const [isLoading, setIsLoading] = useState(true);
+
   const loadCanvas = useCallback(async () => {
     if (!canvasId) return;
-    const url = branchId ? `/api/canvas/${canvasId}?branch_id=${branchId}` : `/api/canvas/${canvasId}`;
-    const state = await api.get<CanvasState>(url);
-    setNodes(state.nodes.map(toReactFlowNode));
-    setEdges(state.edges.map(toReactFlowEdge));
+    setIsLoading(true);
+    try {
+      const url = branchId ? `/api/canvas/${canvasId}?branch_id=${branchId}` : `/api/canvas/${canvasId}`;
+      const state = await api.get<CanvasState>(url);
+      setNodes(state.nodes.map(toReactFlowNode));
+      setEdges(state.edges.map(toReactFlowEdge));
+    } finally {
+      setIsLoading(false);
+    }
   }, [canvasId, branchId]);
 
   // Reload canvas when branch changes
@@ -64,6 +71,11 @@ export function useCanvas(canvasId: string, branchId: string) {
   const updateNodeText = useCallback(async (nodeId: string, text: string) => {
     await api.patch(`/api/canvas/${canvasId}/node/${nodeId}/text`, { text });
     setNodes(prev => prev.map(n => n.id === nodeId ? { ...n, data: { ...n.data, text } } : n));
+  }, [canvasId]);
+
+  const updateNodeProperties = useCallback(async (nodeId: string, properties: Partial<KleosNode>) => {
+    await api.patch(`/api/canvas/${canvasId}/node/${nodeId}`, properties);
+    setNodes(prev => prev.map(n => n.id === nodeId ? { ...n, data: { ...n.data, ...properties } } : n));
   }, [canvasId]);
 
   const pinNode = useCallback(async (nodeId: string, pinned: boolean) => {
@@ -119,10 +131,12 @@ export function useCanvas(canvasId: string, branchId: string) {
     addEdges,
     activateImpactHalo,
     clearImpactHalo,
+    isLoading,
     revertCompilation,
     updateNodeScope,
     persistNodePosition,
     updateNodeText,
+    updateNodeProperties,
     pinNode,
     deleteNode,
     createEdge,

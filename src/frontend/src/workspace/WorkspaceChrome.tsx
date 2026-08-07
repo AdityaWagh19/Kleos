@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { WorkspaceMode } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
@@ -29,6 +29,13 @@ export function WorkspaceChrome({
   const navigate = useNavigate();
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState(title ?? 'Untitled Canvas');
+  const [modeOpen, setModeOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isEditingTitle) {
+      setTempTitle(title ?? 'Untitled Canvas');
+    }
+  }, [title, isEditingTitle]);
 
   const handleBackToDashboard = async () => {
     if (!incognito && canvasId) {
@@ -105,9 +112,9 @@ export function WorkspaceChrome({
 
       {/* Right controls */}
       <div className="flex items-center gap-2">
-        {/* Mode Dropdown */}
-        <div className="relative group">
+        <div className="relative">
           <button
+            onClick={() => setModeOpen(!modeOpen)}
             className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-colors border"
             style={{
               background: 'var(--color-frosted-white)',
@@ -133,31 +140,46 @@ export function WorkspaceChrome({
             </span>
           </button>
 
-          {/* Simple CSS-hover dropdown */}
-          <div className="absolute right-0 top-full mt-1 hidden group-hover:block w-32 rounded-lg border shadow-lg z-50 overflow-hidden"
-               style={{ background: 'var(--color-frosted-white)', borderColor: 'var(--color-warm-stone)' }}>
-            {(['analytical', 'creative', 'critical', 'strategic'] as WorkspaceMode[]).map((m) => (
-              <button
-                key={m}
-                onClick={() => onModeChange(m)}
-                className="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 transition-colors flex items-center gap-2"
-                style={{ color: 'var(--color-charcoal-body)' }}
-              >
-                <span
-                  style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: '50%',
-                    background:
-                      m === 'analytical' ? '#4a90d9' :
-                      m === 'creative' ? '#7dcfb6' :
-                      m === 'critical' ? '#e84040' : '#f5c842',
+          {modeOpen && (
+            <div className="absolute right-0 top-full mt-1 w-64 rounded-lg border shadow-xl z-50 overflow-hidden"
+                 style={{ background: 'var(--color-frosted-white)', borderColor: 'var(--color-warm-stone)' }}>
+              {[
+                { m: 'analytical', label: 'Analytical', desc: 'Strict evidence weighting & attribution' },
+                { m: 'creative',   label: 'Creative',   desc: 'Open idea synthesis & parametric reasoning' },
+                { m: 'critical',   label: 'Critical',   desc: 'Rigorous challenge & contradiction testing' },
+                { m: 'strategic',  label: 'Strategic',  desc: 'Cross-tier convergence & decision synthesis' },
+              ].map(({ m, label, desc }) => (
+                <button
+                  key={m}
+                  title={desc}
+                  onClick={() => {
+                    onModeChange(m as WorkspaceMode);
+                    setModeOpen(false);
                   }}
-                />
-                {m.charAt(0).toUpperCase() + m.slice(1)}
-              </button>
-            ))}
-          </div>
+                  className={`w-full text-left px-3 py-2.5 text-xs transition-colors flex flex-col gap-0.5 border-b last:border-b-0 ${
+                    mode === m ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'
+                  }`}
+                  style={{ color: 'var(--color-charcoal-body)', borderColor: 'var(--color-warm-stone)' }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        background:
+                          m === 'analytical' ? '#4a90d9' :
+                          m === 'creative' ? '#7dcfb6' :
+                          m === 'critical' ? '#e84040' : '#f5c842',
+                      }}
+                    />
+                    <span>{label}</span>
+                  </div>
+                  <span className="text-[10px] text-gray-500 font-normal pl-3.5">{desc}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {incognito && (

@@ -108,7 +108,11 @@ def export_markdown(canvas_id: str, branch_id: str, export_type: str = "full") -
     return template.format(
         timestamp=datetime.now().strftime("%Y-%m-%d %H:%M"),
         mode=canvas.get("workspace_mode", "analytical"),
-        problem_statement=node_list("decision") or "No decision nodes found.",
+        problem_statement=(
+            node_list("question")
+            if node_list("question") != "None identified."
+            else (node_list("constraint") if node_list("constraint") != "None identified." else "No problem statement identified.")
+        ),
         assumptions_table=assumptions_table,
         evidence_list=node_list("evidence"),
         decisions_list=node_list("decision"),

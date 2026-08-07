@@ -7,7 +7,7 @@ interface Props {
 }
 
 export function CanvasLeftRail({ nodes, onNodeSelect }: Props) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
 
   // Group nodes by type
   const nodeGroups = nodes.reduce((acc, node) => {
@@ -48,7 +48,7 @@ export function CanvasLeftRail({ nodes, onNodeSelect }: Props) {
   if (!expanded) {
     return (
       <div 
-        className="absolute left-0 top-0 bottom-0 w-12 flex flex-col items-center py-4 border-r transition-all z-30"
+        className="h-full w-12 flex flex-col items-center py-4 border-r transition-all z-30 shrink-0"
         style={{ background: 'var(--color-frosted-white)', borderColor: 'var(--color-warm-stone)' }}
       >
         <button
@@ -85,7 +85,7 @@ export function CanvasLeftRail({ nodes, onNodeSelect }: Props) {
 
   return (
     <div 
-      className="absolute left-0 top-0 bottom-0 w-64 flex flex-col border-r transition-all z-30 shadow-lg"
+      className="h-full w-64 flex flex-col border-r transition-all z-30 shadow-sm shrink-0"
       style={{ background: 'var(--color-frosted-white)', borderColor: 'var(--color-warm-stone)', fontFamily: 'var(--font-switzer)' }}
     >
       <div className="flex items-center justify-between p-3 border-b" style={{ borderColor: 'var(--color-warm-stone)' }}>

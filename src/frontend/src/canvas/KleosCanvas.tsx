@@ -12,7 +12,6 @@ import 'reactflow/dist/style.css';
 import { BaseNode } from './nodes/BaseNode';
 import { KleosEdgeComponent } from './KleosEdge';
 import { ClusterBackground } from './clusters/ClusterBackground';
-import { useCanvas } from '../hooks/useCanvas';
 import { EdgeConnectionDialog } from './EdgeConnectionDialog';
 import { NodeContextMenu } from './NodeContextMenu';
 
@@ -35,15 +34,23 @@ const EDGE_TYPES = {
 interface Props {
   canvasId: string;
   branchId: string;
+  nodes: any[];
+  edges: any[];
+  persistNodePosition: (id: string, x: number, y: number) => void;
+  deleteNode: (id: string) => void;
+  createEdge: (source: string, target: string, type: any, confidence: any, label?: string) => void;
+  mergeNodes: (ids: string[]) => Promise<void>;
+  pinNode: (id: string, pinned: boolean) => void;
+  selectedNodeIds: string[];
   onNodesLoaded?: (count: number) => void;
   onNodeSelect?: (nodeIds: string[]) => void;
+  onPanToNode?: (nodeId: string) => void;
+  onAskAIAboutNode?: (nodeId: string, text: string) => void;
 }
 
-export function KleosCanvas({ canvasId, branchId, onNodesLoaded, onNodeSelect }: Props) {
-  const {
-    nodes, edges,
-    persistNodePosition, deleteNode, createEdge, mergeNodes, pinNode
-  } = useCanvas(canvasId, branchId);
+export function KleosCanvas({ 
+  canvasId, branchId, nodes, edges, persistNodePosition, deleteNode, createEdge, mergeNodes, pinNode, selectedNodeIds, onNodesLoaded, onNodeSelect, onPanToNode: _onPanToNode, onAskAIAboutNode 
+}: Props) {
 
   const { fitView } = useReactFlow();
   const hasFitView = useRef(false);
@@ -54,12 +61,8 @@ export function KleosCanvas({ canvasId, branchId, onNodesLoaded, onNodeSelect }:
   // Node Context Menu State
   const [contextMenu, setContextMenu] = useState<{ id: string; x: number; y: number; pinned: boolean; text: string } | null>(null);
 
-  // Track selected node IDs for context menu merge action
-  const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
-
   const onSelectionChange = useCallback(({ nodes }: { nodes: any[] }) => {
     const ids = nodes.map(n => n.id);
-    setSelectedNodeIds(ids);
     if (onNodeSelect) onNodeSelect(ids);
   }, [onNodeSelect]);
 
@@ -166,11 +169,25 @@ export function KleosCanvas({ canvasId, branchId, onNodesLoaded, onNodeSelect }:
           selectedNodeIds={selectedNodeIds.includes(contextMenu.id) ? selectedNodeIds : [contextMenu.id]}
           onEdit={() => { /* Handled inline via BaseNode */ }}
           onPin={() => pinNode(contextMenu.id, !contextMenu.pinned)}
-          onDelete={() => deleteNode(contextMenu.id)}
+          onDelete={() => { deleteNode(contextMenu.id); }}
           onMerge={() => { if (selectedNodeIds.length > 1) mergeNodes(selectedNodeIds); }}
-          onCreateEdgeFrom={() => { /* Start connection drag manually if needed */ }}
-          onViewProvenance={() => { /* Open provenance popover */ }}
-          onAskAI={() => { /* Put text in chat bar */ }}
+          onCreateEdgeFrom={() => {
+            // Highlight the node so user can drag a connection
+            const nodeEl = document.querySelector(`[data-id="${contextMenu.id}"]`) as HTMLElement | null;
+            nodeEl?.focus();
+          }}
+          onViewProvenance={() => {
+            const node = nodes.find(n => n.id === contextMenu.id);
+            if (node?.data?.provenance_detail) {
+              // Show provenance in a native tooltip-style alert until ProvenancePanel is built
+              const detail = node.data.provenance_detail;
+              const msg = Object.entries(detail).map(([k, v]) => `${k}: ${v}`).join('\n');
+              window.alert(`Provenance:\n${msg}`);
+            }
+          }}
+          onAskAI={() => {
+            if (onAskAIAboutNode) onAskAIAboutNode(contextMenu.id, contextMenu.text);
+          }}
           onClose={() => setContextMenu(null)}
         />
       )}

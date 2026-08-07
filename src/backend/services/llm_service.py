@@ -86,6 +86,10 @@ def compile_document(text: str, workspace_mode: str = "analytical") -> dict:
     raw.setdefault("reasoning_steps", [])
     raw.setdefault("contradictions", [])
     raw.setdefault("proposed_memories", [])
+    
+    if len(text) > 8000:
+        raw.setdefault("warnings", []).append("Document exceeded 8000 characters and was truncated.")
+        
     return raw
 
 

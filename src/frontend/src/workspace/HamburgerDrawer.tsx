@@ -14,6 +14,10 @@ interface Props {
   onBranchSwitch: (id: string) => void;
   onCompare: (branchA: string, branchB: string) => void;
   onBranchCreated: (b: Branch) => void;
+  onOpenMemory: () => void;
+  onOpenExport: () => void;
+  onOpenShortcuts: () => void;
+  onOpenSessionAudit?: () => void;
 }
 
 export function HamburgerDrawer({
@@ -28,6 +32,10 @@ export function HamburgerDrawer({
   onBranchSwitch,
   onCompare,
   onBranchCreated,
+  onOpenMemory,
+  onOpenExport,
+  onOpenShortcuts,
+  onOpenSessionAudit,
 }: Props) {
   // Focus management
   const closeBtnRef = useRef<HTMLButtonElement>(null);
@@ -76,10 +84,10 @@ export function HamburgerDrawer({
 
       {/* Drawer */}
       <div
-        className={`fixed top-[48px] right-0 bottom-0 w-[340px] shadow-2xl z-50 transition-transform duration-300 ease-out flex flex-col font-switzer ${
+        className={`fixed right-0 bottom-0 w-[340px] shadow-2xl z-50 transition-transform duration-300 ease-out flex flex-col font-switzer ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
-        style={{ background: 'var(--color-frosted-white)', borderLeft: '1px solid var(--color-warm-stone)' }}
+        style={{ top: 'var(--header-height, 48px)', background: 'var(--color-frosted-white)', borderLeft: '1px solid var(--color-warm-stone)' }}
       >
         <div className="flex items-center justify-between px-5 py-4 bg-white" style={{ borderBottom: '1px solid var(--color-warm-stone)' }}>
           <h2 className="text-[15px] font-semibold" style={{ color: 'var(--color-charcoal-body)' }}>Workspace Menu</h2>
@@ -188,6 +196,49 @@ export function HamburgerDrawer({
             )}
           </section>
 
+          {/* Section: Tools */}
+          <section>
+            <h3 className="text-[11px] font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--color-slate-caption)' }}>
+              Tools
+            </h3>
+            <div className="space-y-1">
+              <button
+                onClick={() => { onClose(); onOpenMemory(); }}
+                className="flex items-center gap-2 w-full text-left px-3 py-2 text-[13px] rounded-md transition-colors hover:bg-gray-100"
+                style={{ color: 'var(--color-charcoal-body)' }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--color-slate-caption)' }}>memory</span>
+                Memory Panel
+              </button>
+              <button
+                onClick={() => { onClose(); onOpenExport(); }}
+                className="flex items-center gap-2 w-full text-left px-3 py-2 text-[13px] rounded-md transition-colors hover:bg-gray-100"
+                style={{ color: 'var(--color-charcoal-body)' }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--color-slate-caption)' }}>ios_share</span>
+                Export Canvas
+              </button>
+              <button
+                onClick={() => { onClose(); onOpenShortcuts(); }}
+                className="flex items-center gap-2 w-full text-left px-3 py-2 text-[13px] rounded-md transition-colors hover:bg-gray-100"
+                style={{ color: 'var(--color-charcoal-body)' }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--color-slate-caption)' }}>keyboard</span>
+                Keyboard Shortcuts
+              </button>
+              {onOpenSessionAudit && (
+                <button
+                  onClick={() => { onClose(); onOpenSessionAudit(); }}
+                  className="flex items-center gap-2 w-full text-left px-3 py-2 text-[13px] rounded-md transition-colors hover:bg-gray-100"
+                  style={{ color: 'var(--color-charcoal-body)' }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--color-slate-caption)' }}>verified_user</span>
+                  Session Audit
+                </button>
+              )}
+            </div>
+          </section>
+
           {/* Section: Settings */}
           <section>
             <h3 className="text-[11px] font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--color-slate-caption)' }}>
@@ -206,6 +257,35 @@ export function HamburgerDrawer({
               <p className="text-[11px] text-gray-500 leading-relaxed m-0">
                 When enabled, Kleos will not write anything to long-term or session memory.
               </p>
+            </div>
+          </section>
+
+          {/* Section: Resources */}
+          <section>
+            <h3 className="text-[11px] font-bold uppercase tracking-wider mb-3" style={{ color: 'var(--color-slate-caption)' }}>
+              Resources
+            </h3>
+            <div className="space-y-1">
+              <a
+                href="/docs"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 w-full text-left px-3 py-2 text-[13px] rounded-md transition-colors hover:bg-gray-100"
+                style={{ color: 'var(--color-charcoal-body)', textDecoration: 'none' }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--color-slate-caption)' }}>menu_book</span>
+                Documentation
+              </a>
+              <a
+                href="/research"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 w-full text-left px-3 py-2 text-[13px] rounded-md transition-colors hover:bg-gray-100"
+                style={{ color: 'var(--color-charcoal-body)', textDecoration: 'none' }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--color-slate-caption)' }}>science</span>
+                Research Methods
+              </a>
             </div>
           </section>
 

@@ -247,6 +247,34 @@ async def update_node_text(
     return {"updated": True, "text": text}
 
 
+class UpdateNodePropertiesRequest(BaseModel):
+    confidence: str | None = None
+    type: str | None = None
+
+
+@router.patch("/canvas/{canvas_id}/node/{node_id}")
+async def update_node_properties(
+    canvas_id: str,
+    node_id: str,
+    req: UpdateNodePropertiesRequest,
+    user: dict = Depends(get_current_user)
+):
+    updates = {}
+    if req.confidence is not None:
+        updates["confidence"] = req.confidence
+    if req.type is not None:
+        updates["type"] = req.type
+        
+    if not updates:
+        return {"updated": False}
+
+    sb = get_client()
+    _verify_canvas_owner(sb, canvas_id, user)
+    sb.table("nodes").update(updates).eq("id", node_id).eq("canvas_id", canvas_id).execute()
+    log_event(canvas_id, "", "node_properties_updated", "user", "ui", [node_id], updates)
+    return {"updated": True, "updates": updates}
+
+
 class UpdateNodePositionRequest(BaseModel):
     x: float
     y: float
@@ -554,15 +582,26 @@ async def drop_artifact(
     extracted_text = ""
     if file and file.filename:
         content = await file.read()
-        filename = file.filename.lower()
-        if filename.endswith(".pdf"):
-            import fitz
-            doc = fitz.open(stream=content, filetype="pdf")
-            extracted_text = "\n".join(page.get_text() for page in doc)
-        elif filename.endswith(".docx"):
-            import docx
-            doc = docx.Document(io.BytesIO(content))
-            extracted_text = "\n".join(p.text for p in doc.paragraphs if p.text.strip())
+        storage_path = f"{canvas_id}/{uuid.uuid4()}_{file.filename}"
+        try:
+            sb.storage.from_("artifacts").upload(storage_path, content)
+        except Exception:
+            pass
+        try:
+            sb.table("artifacts").insert({
+                "id": str(uuid.uuid4()),
+                "canvas_id": canvas_id,
+                "filename": file.filename,
+                "storage_path": storage_path,
+            }).execute()
+        except Exception:
+            pass
+
+        from services import ingestion_service
+        if file.filename.lower().endswith(".pdf"):
+            extracted_text = ingestion_service.extract_pdf(content)
+        elif file.filename.lower().endswith(".docx"):
+            extracted_text = ingestion_service.extract_docx(content)
         else:
             extracted_text = content.decode("utf-8", errors="replace")
     elif text:
@@ -580,10 +619,42 @@ async def drop_artifact(
         contradictions = llm_service.detect_contradictions(compilation["nodes"], existing)
         compilation["contradictions"] = compilation.get("contradictions", []) + contradictions
 
-    nodes_created = canvas_service.apply_compilation(
+    nodes_created = await canvas_service.apply_compilation(
         canvas_id, branch_id, compilation, "drop", workspace_mode
     )
     return {"status": "complete", "nodes_created": nodes_created, "compilation": compilation}
+
+
+class IngestUrlRequest(BaseModel):
+    url: str
+
+
+@router.post("/canvas/{canvas_id}/ingest-url")
+async def ingest_url(
+    canvas_id: str,
+    req: IngestUrlRequest,
+    user: dict = Depends(get_current_user)
+):
+    """I-04: Ingest a web URL using ingestion_service."""
+    sb = get_client()
+    canvas_row = _verify_canvas_owner(sb, canvas_id, user)
+    workspace_mode = canvas_row.get("workspace_mode", "analytical")
+    bid = _get_active_branch_id(sb, canvas_id)
+
+    from services import ingestion_service
+    try:
+        text = ingestion_service.extract_url(req.url)
+    except Exception as e:
+        raise HTTPException(400, f"Failed to fetch or parse URL: {e}")
+
+    if not text.strip():
+        raise HTTPException(422, "No readable text content found at URL")
+
+    compilation = llm_service.compile_document(text, workspace_mode)
+    nodes_created = await canvas_service.apply_compilation(
+        canvas_id, bid, compilation, "drop", workspace_mode
+    )
+    return {"status": "complete", "url": req.url, "nodes_created": nodes_created}
 
 
 # ---------------------------------------------------------------------------
@@ -678,12 +749,26 @@ async def commit_branch(
     sb.table("branches").update({"status": "committed"}).eq("id", branch_id).execute()
     main_branch = sb.table("branches").select("id").eq("canvas_id", canvas_id).eq("name", "main").execute()
     if main_branch.data:
+        main_id = main_branch.data[0]["id"]
         branch_row = sb.table("branches").select("name").eq("id", branch_id).single().execute()
         branch_name = branch_row.data.get("name", branch_id[:8]) if branch_row.data else branch_id[:8]
+
+        # S-04: Copy branch nodes into main branch
+        branch_nodes = sb.table("nodes").select("*").eq("canvas_id", canvas_id).eq("branch_id", branch_id).execute().data or []
+        main_nodes = sb.table("nodes").select("text").eq("canvas_id", canvas_id).eq("branch_id", main_id).execute().data or []
+        existing_texts = set(n["text"] for n in main_nodes)
+
+        for bnode in branch_nodes:
+            if bnode["text"] not in existing_texts:
+                new_node = dict(bnode)
+                new_node["id"] = str(uuid.uuid4())
+                new_node["branch_id"] = main_id
+                sb.table("nodes").insert(new_node).execute()
+
         sb.table("nodes").insert({
             "id":               str(uuid.uuid4()),
             "canvas_id":        canvas_id,
-            "branch_id":        main_branch.data[0]["id"],
+            "branch_id":        main_id,
             "type":             "decision",
             "text":             f"Committed branch: {branch_name}",
             "confidence":       "high",
@@ -725,40 +810,45 @@ async def create_counterfactual(
     impact_node_ids: list[str] = assumption.get("impact_nodes") or []
     branch_name = req.branch_name or f"Counterfactual: without '{assumption['text'][:30]}'"
 
-    fork_result = await create_branch(
-        canvas_id, CreateBranchRequest(name=branch_name), user
-    )
-    new_branch_id = fork_result["branch_id"]
-
-    forked_assumption = (
-        sb.table("nodes").select("id")
-        .eq("canvas_id", canvas_id).eq("branch_id", new_branch_id)
-        .eq("text", assumption["text"]).execute()
-    )
-    if forked_assumption.data:
-        sb.table("nodes").delete().eq("id", forked_assumption.data[0]["id"]).execute()
-
-    impacted = (
-        sb.table("nodes").select("id,text,type")
-        .eq("canvas_id", canvas_id).eq("branch_id", new_branch_id)
-        .in_("id", impact_node_ids).execute().data
-    )
-    if impacted:
-        context = (
-            f"Recompile these nodes WITHOUT the assumption: '{assumption['text']}'\n\n"
-            + "\n".join(f"[{n['type']}] {n['text']}" for n in impacted)
+    try:
+        fork_result = await create_branch(
+            canvas_id, CreateBranchRequest(name=branch_name), user
         )
-        workspace_mode = canvas_row.get("workspace_mode", "analytical")
-        compilation = llm_service.compile_document(context, workspace_mode)
-        for n in impacted:
-            sb.table("nodes").delete().eq("id", n["id"]).execute()
-        canvas_service.apply_compilation(canvas_id, new_branch_id, compilation, "text", workspace_mode)
+        new_branch_id = fork_result["branch_id"]
 
-    return {
-        "branch_id":        new_branch_id,
-        "changed_node_ids": impact_node_ids,
-        "summary":          f"Removed assumption affected {len(impact_node_ids)} nodes",
-    }
+        forked_assumption = (
+            sb.table("nodes").select("id")
+            .eq("canvas_id", canvas_id).eq("branch_id", new_branch_id)
+            .eq("text", assumption["text"]).execute()
+        )
+        if forked_assumption.data:
+            sb.table("nodes").delete().eq("id", forked_assumption.data[0]["id"]).execute()
+
+        impacted = (
+            sb.table("nodes").select("id,text,type")
+            .eq("canvas_id", canvas_id).eq("branch_id", new_branch_id)
+            .in_("id", impact_node_ids).execute().data
+        )
+        if impacted:
+            context = (
+                f"Recompile these nodes WITHOUT the assumption: '{assumption['text']}'\n\n"
+                + "\n".join(f"[{n['type']}] {n['text']}" for n in impacted)
+            )
+            workspace_mode = canvas_row.get("workspace_mode", "analytical")
+            compilation = llm_service.compile_document(context, workspace_mode)
+            for n in impacted:
+                sb.table("nodes").delete().eq("id", n["id"]).execute()
+            await canvas_service.apply_compilation(canvas_id, new_branch_id, compilation, "text", workspace_mode)
+
+        return {
+            "branch_id":        new_branch_id,
+            "changed_node_ids": impact_node_ids,
+            "summary":          f"Removed assumption affected {len(impact_node_ids)} nodes",
+        }
+    except Exception as e:
+        if 'new_branch_id' in locals():
+            sb.table("branches").update({"status": "discarded"}).eq("id", new_branch_id).execute()
+        raise HTTPException(500, f"Counterfactual creation failed: {e}")
 
 
 # ---------------------------------------------------------------------------

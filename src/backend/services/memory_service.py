@@ -189,13 +189,24 @@ def compute_freshness(memories: list[dict], canvas_nodes: list[dict]) -> dict[st
         else:
             age_label = f"{days // 30}mo ago"
 
-        # Keyword-based staleness check (heuristic)
-        mem_words = set(mem.get("text", "").lower().split())
-        negation  = {"not", "no", "against", "rejected", "false", "incorrect", "wrong"}
-        stale = any(
-            mem_words & set(nt.split()) and negation & set(nt.split())
-            for nt in node_texts
-        )
+        # Upgraded staleness heuristic (M-04)
+        STOP_WORDS = {"the", "a", "an", "is", "are", "was", "were", "to", "for", "of", "and", "in", "on", "it", "this", "that", "with", "as", "by", "at", "be"}
+        mem_words = set(mem.get("text", "").lower().split()) - STOP_WORDS
+        negation = {
+            "not", "no", "against", "rejected", "false", "incorrect", "wrong",
+            "deprecated", "outdated", "superseded", "changed", "invalid", "obsolete",
+            "never", "cannot", "disproven", "untrue"
+        }
+
+        stale = False
+        if len(mem_words) > 0:
+            for nt in node_texts:
+                nt_words = set(nt.split()) - STOP_WORDS
+                has_negation = bool(negation & nt_words)
+                shared_keywords = mem_words & nt_words
+                if has_negation and len(shared_keywords) >= 1:
+                    stale = True
+                    break
 
         result[mem["id"]] = {"age_label": age_label, "stale": stale}
 

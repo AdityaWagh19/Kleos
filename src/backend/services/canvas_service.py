@@ -3,7 +3,7 @@ from db.supabase import get_client
 from db.queries import log_event
 
 
-def apply_compilation(
+async def apply_compilation(
     canvas_id: str,
     branch_id: str,
     compilation: dict,
@@ -13,6 +13,7 @@ def apply_compilation(
     """
     Writes compilation output (nodes + edges + contradiction edges) to Supabase.
     Remaps LLM temp IDs → DB UUIDs after insertion so impact_nodes references are correct.
+    Also ingests proposed_memories (Tier 2 quarantined).
     Returns number of nodes created.
     """
     sb = get_client()
@@ -53,6 +54,16 @@ def apply_compilation(
         node_a = id_map.get(contradiction["node_a"], contradiction["node_a"])
         node_b = id_map.get(contradiction["node_b"], contradiction["node_b"])
         create_edge(canvas_id, branch_id, node_a, node_b, "contradicts", "high")
+
+    # M-01: Ingest proposed_memories (Tier 2 quarantined)
+    proposed = compilation.get("proposed_memories", [])
+    if proposed:
+        from services.memory_service import propose_inferred_memory
+        for pmem in proposed:
+            text = pmem.get("text") if isinstance(pmem, dict) else str(pmem)
+            trigger = pmem.get("trigger", "document_compilation") if isinstance(pmem, dict) else "document_compilation"
+            if text:
+                await propose_inferred_memory(canvas_id, text, trigger, input_modality)
 
     return len(nodes_raw)
 

@@ -161,15 +161,20 @@ function MemoryItem({
   const [text, setText]       = useState(memory.text);
 
   const TIER_COLORS: Record<number, string> = { 0: '#2e7d32', 1: '#1565c0', 2: '#e65100', 3: 'var(--color-slate-caption)' };
-  const TIER_LABELS: Record<number, string> = { 0: 'Core', 1: 'Session', 2: 'Pending', 3: 'Source' };
+  const getLabel = () => {
+    if (memory.tier === 1) {
+      return memory.scope === 'workspace' ? 'Workspace' : 'Session';
+    }
+    return { 0: 'Core', 2: 'Pending', 3: 'Source' }[memory.tier as 0|2|3] || 'Memory';
+  };
 
   return (
     <div className="px-3 py-2.5 transition-colors hover:bg-gray-50"
          style={{ borderBottom: '1px solid var(--color-warm-stone)' }}>
       <div className="flex items-start justify-between mb-1">
         <span style={{ fontSize: '9px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em',
-                       color: TIER_COLORS[memory.tier as 0|1|2|3] }}>
-          {TIER_LABELS[memory.tier as 0|1|2|3]}
+                       color: memory.tier === 1 && memory.scope === 'workspace' ? '#6a1b9a' : TIER_COLORS[memory.tier as 0|1|2|3] }}>
+          {getLabel()}
         </span>
         <div className="flex items-center gap-1.5">
           {memory.freshness?.stale && (

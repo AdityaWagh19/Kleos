@@ -19,9 +19,10 @@ app.add_middleware(
     secret_key=os.environ.get("SESSION_SECRET", "super-secret-key")
 )
 
+cors_origins = os.environ.get("CORS_ORIGINS", "http://localhost:5173").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

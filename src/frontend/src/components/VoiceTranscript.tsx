@@ -16,7 +16,7 @@ export function VoiceTranscript({ transcript, isActive }: Props) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 8 }}
           transition={{ duration: 0.2 }}
-          className="absolute bottom-16 left-1/2 -translate-x-1/2 z-20 font-switzer"
+          className="z-20 font-switzer mx-auto mb-2"
           role="status"
           aria-live="polite"
           aria-label="Voice transcript"

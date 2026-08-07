@@ -106,6 +106,15 @@ async def archive_memory(canvas_id: str, memory_id: str, user: dict = Depends(ve
     return {"archived": True}
 
 
+@router.post("/canvas/{canvas_id}/memory/{memory_id}/reject")
+async def reject_memory_endpoint(canvas_id: str, memory_id: str, user: dict = Depends(verify_canvas_ownership)):
+    """Soft-delete: rejected=TRUE, quarantined=TRUE. Excluded from LLM context forever."""
+    sb = get_client()
+    sb.table("memories").update({"rejected": True, "quarantined": True}).eq("id", memory_id).execute()
+    log_event(canvas_id, "main", "memory_rejected", "user", "text", [])
+    return {"rejected": True}
+
+
 # ---------------------------------------------------------------------------
 # Ratify (accept Tier 2 memory)
 # ---------------------------------------------------------------------------

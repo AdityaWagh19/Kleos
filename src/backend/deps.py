@@ -14,6 +14,8 @@ async def get_current_user(request: Request) -> dict:
 
     redis_client = get_redis()
     user_id = redis_client.get(f"session:{session_id}")
+    if isinstance(user_id, bytes):
+        user_id = user_id.decode("utf-8")
     
     if not user_id:
         raise HTTPException(status_code=401, detail="Session expired or invalid")

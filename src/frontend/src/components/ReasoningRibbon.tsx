@@ -31,11 +31,12 @@ export function ReasoningRibbon({ steps, isActive, onStepClick }: Props) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 4 }}
           transition={{ duration: 0.2 }}
-          className="absolute bottom-0 left-0 right-0 z-20 flex items-center gap-3 overflow-x-auto px-4 font-switzer scrollbar-hide"
+          className="flex items-center gap-3 overflow-x-auto px-4 font-switzer scrollbar-hide rounded-full mx-auto mb-2"
           style={{
             height:     '40px',
+            maxWidth:   '680px',
             background: 'var(--color-frosted-white)',
-            borderTop:  '1px solid var(--color-warm-stone)',
+            border:  '1px solid var(--color-warm-stone)',
           }}
         >
           {steps.map((step, i) => (

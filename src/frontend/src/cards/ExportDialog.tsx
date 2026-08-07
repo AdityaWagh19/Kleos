@@ -24,21 +24,37 @@ export function ExportDialog({ open, canvasId, branchId, onClose }: Props) {
   const [progress, setProgress] = useState(0);
   const [exportError, setExportError] = useState<string | null>(null);
 
-  const handleExport = async () => {
+    const handleExport = async () => {
+    if (!branchId) {
+      setExportError('Cannot export: No active branch.');
+      return;
+    }
     setLoading(true);
     setExportError(null);
-    const base = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
+    const base = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.DEV ? 'http://localhost:8000' : '');
     const qs   = `branch_id=${branchId}&export_type=${type}`;
 
     try {
       if (format === 'markdown') {
-        window.open(`${base}/api/canvas/${canvasId}/export/markdown?${qs}`, '_blank');
+        const resp = await fetch(
+          `${base}/api/canvas/${canvasId}/export/markdown?${qs}`,
+          { method: 'GET', credentials: 'include' }
+        );
+        if (!resp.ok) throw new Error(await resp.text());
+        const textData = await resp.text();
+        const blob = new Blob([textData], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `kleos-export-${type}.md`;
+        a.click();
+        URL.revokeObjectURL(url);
       } else {
         // PDF — stream download
         setProgress(10);
         const resp = await fetch(
           `${base}/api/canvas/${canvasId}/export/pdf?${qs}`,
-          { method: 'POST' }
+          { method: 'POST', credentials: 'include' }
         );
         setProgress(80);
         if (!resp.ok) throw new Error(await resp.text());

@@ -16,6 +16,9 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     ...options,
   });
   if (!res.ok) {
+    if (res.status === 401 && window.location.pathname !== '/login' && window.location.pathname !== '/') {
+      window.location.href = '/login';
+    }
     const text = await res.text();
     throw new ApiError(res.status, text);
   }
@@ -34,7 +37,12 @@ export const api = {
   postFormData: <T>(path: string, formData: FormData) =>
     fetch(`${BASE_URL}${path}`, { method: 'POST', body: formData, credentials: 'include' })
       .then(async (res) => {
-        if (!res.ok) throw new ApiError(res.status, await res.text());
+        if (!res.ok) {
+          if (res.status === 401 && window.location.pathname !== '/login' && window.location.pathname !== '/') {
+            window.location.href = '/login';
+          }
+          throw new ApiError(res.status, await res.text());
+        }
         return res.json() as Promise<T>;
       }),
 };

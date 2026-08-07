@@ -53,6 +53,13 @@ export const BottomChatBar = forwardRef<BottomChatBarRef, Props>(function Bottom
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const allowedExts = ['.pdf', '.docx', '.txt', '.md', '.json'];
+      const ext = '.' + file.name.split('.').pop()?.toLowerCase();
+      if (!allowedExts.includes(ext)) {
+        alert(`Unsupported file type: ${ext}. Please upload a PDF, DOCX, or text file.`);
+        e.target.value = '';
+        return;
+      }
       onFileAttach(file);
       // Reset input so the same file can be selected again
       e.target.value = '';
@@ -67,7 +74,7 @@ export const BottomChatBar = forwardRef<BottomChatBarRef, Props>(function Bottom
 
   return (
     <div
-      className="absolute bottom-6 left-1/2 -translate-x-1/2 bottom-chat-bar flex flex-col z-40 transition-all"
+      className="bottom-chat-bar flex flex-col transition-all mx-auto"
       style={{
         width: 'calc(100% - 48px)',
         maxWidth: '680px',
@@ -100,6 +107,7 @@ export const BottomChatBar = forwardRef<BottomChatBarRef, Props>(function Bottom
           <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>attach_file</span>
         </button>
         <input
+          id="chat-file-upload"
           type="file"
           ref={fileInputRef}
           style={{ display: 'none' }}
@@ -109,6 +117,7 @@ export const BottomChatBar = forwardRef<BottomChatBarRef, Props>(function Bottom
 
         {/* Textarea */}
         <textarea
+          id="chat-textarea"
           ref={textareaRef}
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -124,18 +133,35 @@ export const BottomChatBar = forwardRef<BottomChatBarRef, Props>(function Bottom
           }}
         />
 
-        {/* Mic */}
-        <button
-          onClick={onVoiceToggle}
-          disabled={isCompiling}
-          className={`pb-1 shrink-0 transition-colors ${voiceActive ? 'text-red-500' : 'text-gray-500 hover:text-gray-800'} disabled:opacity-50`}
-          title={voiceActive ? 'Stop Voice' : 'Start Voice'}
-          aria-label={voiceActive ? 'Stop voice input' : 'Start voice input'}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
-            {voiceActive ? 'mic' : 'mic_none'}
-          </span>
-        </button>
+        {/* Mic or Submit */}
+        {text.trim().length > 0 ? (
+          <button
+            onClick={() => {
+              onSubmit(text);
+              setText('');
+            }}
+            disabled={isCompiling}
+            className={`pb-1 shrink-0 transition-colors text-gray-800 disabled:opacity-50`}
+            title="Submit thought (Ctrl+Enter)"
+            aria-label="Submit thought"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
+              send
+            </span>
+          </button>
+        ) : (
+          <button
+            onClick={onVoiceToggle}
+            disabled={isCompiling}
+            className={`pb-1 shrink-0 transition-colors ${voiceActive ? 'text-red-500' : 'text-gray-500 hover:text-gray-800'} disabled:opacity-50`}
+            title={voiceActive ? 'Stop Voice' : 'Start Voice'}
+            aria-label={voiceActive ? 'Stop voice input' : 'Start voice input'}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
+              {voiceActive ? 'mic' : 'mic_none'}
+            </span>
+          </button>
+        )}
 
         {/* Submit or Stop */}
         {isCompiling ? (
