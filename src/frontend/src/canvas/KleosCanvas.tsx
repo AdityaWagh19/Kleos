@@ -5,6 +5,7 @@ import ReactFlow, {
   BackgroundVariant,
   MiniMap,
   useReactFlow,
+  type Connection,
   type NodeMouseHandler,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
