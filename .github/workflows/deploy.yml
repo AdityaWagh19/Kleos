@@ -78,7 +78,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "docker-compose.prod.yml,.env"
-          target: "~/kleos"
+          target: "/home/ubuntu/kleos"
 
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
