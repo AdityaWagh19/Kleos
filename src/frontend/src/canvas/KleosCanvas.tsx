@@ -49,7 +49,7 @@ interface Props {
 }
 
 export function KleosCanvas({ 
-  canvasId, branchId, nodes, edges, persistNodePosition, deleteNode, createEdge, mergeNodes, pinNode, selectedNodeIds, onNodesLoaded, onNodeSelect, onPanToNode: _onPanToNode, onAskAIAboutNode 
+  canvasId: _canvasId, branchId: _branchId, nodes, edges, persistNodePosition, deleteNode, createEdge, mergeNodes, pinNode, selectedNodeIds, onNodesLoaded, onNodeSelect, onPanToNode: _onPanToNode, onAskAIAboutNode 
 }: Props) {
 
   const { fitView } = useReactFlow();
